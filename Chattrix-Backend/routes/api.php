@@ -1,10 +1,7 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/hello', function () {
-    return response()->json([
-        'message' => 'Hello from Laravel API',
-        'success' => true,
-    ]);
-});
+
+Route::get('/register', [AuthController::class, 'register'])->name('register');
