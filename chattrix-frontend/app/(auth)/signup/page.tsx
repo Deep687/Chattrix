@@ -13,7 +13,9 @@ type SignUpForm = {
   password_confirmation: string;
 };
 
-const [errors, setErrors] = useState<Partial<Record<keyof SignUpForm, string[]>>>({});
+type ErrorMessages = Partial<Record<keyof SignUpForm, string[]>>;
+
+const [errors, setErrors] = useState<ErrorMessages>({});
 
 const [successMessage, setSuccessMessage] = useState('');
 
