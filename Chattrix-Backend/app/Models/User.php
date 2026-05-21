@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\UserRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -29,6 +30,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'role' => UserRole::class,
         ];
     }
 
@@ -41,5 +43,8 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Hub::class,'hub_member');
 
+    }
+    public function isSuperAdmin(): bool {
+        return $this->role === UserRole::SuperAdmin;
     }
 }
