@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\HubRole;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users');
             $table->foreignId('hub_id')->constrained('hubs');
-            $table->string('role');
+            $table->string('role')->default(HubRole::Member->value);
             $table->timestamp('joined_at')->useCurrent();
 
         });
