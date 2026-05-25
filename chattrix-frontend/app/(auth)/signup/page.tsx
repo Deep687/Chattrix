@@ -42,7 +42,7 @@ const handleSubmit=async(  e: React.FormEvent<HTMLFormElement>)=>{
 
   try {
     const response = await axios.post(
-      "https://chattrix-backend.test/api/register",
+      "https://chattrix-backend.test/api/auth/register",
       form
     );
 
