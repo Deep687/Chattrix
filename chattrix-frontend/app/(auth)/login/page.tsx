@@ -3,26 +3,29 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import { setUser } from "@/lib/features/userSlice";
+import { useAppDispatch } from "@/lib/hooks";
 
 export default function Login() {
 const router = useRouter();
+const dispatch = useAppDispatch();
 type LoginForm = {
   email: string;
   password: string;
 };
 
-type User = {
-  id: number;
-  name: string;
-  email: string;
-  created_at: string;
-  updated_at: string;
-};
-
 type LoginSuccessResponse = {
-  data: User;
+  data: {
+    id: number;
+    name: string;
+    email: string;
+    email_verified_at: string | null;
+    avatar: string;
+    bio: string;
+    role: string;
+    remember_token: string;
+  };
   message: string;
-  token: string;
 }
 
 const [errors, setErrors] = useState<Partial<Record<keyof LoginForm, string[]>>>({});
@@ -53,11 +56,9 @@ const handleSubmit=async(  e: React.FormEvent<HTMLFormElement>)=>{
  setLoginError('');
  
   try {
-    const response = await axios.post<LoginSuccessResponse>(
-      "https://chattrix-backend.test/api/login",
-      form
-    );
+    const response = await axios.post<LoginSuccessResponse>('/api/auth/login', form);
 
+    dispatch(setUser(response.data.data));
     setSuccessMessage('Logged in successfully! Redirecting to dashboard...');
 
     setTimeout(() => {
