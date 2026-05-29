@@ -31,6 +31,12 @@ Route::prefix('auth')->group(function () {
     });
 });
 
+
+/**
+ * Token refresh auth ( middleware or guard will be auth:sanctum-refresh)
+ */
+    Route::post('/auth/refresh', [AuthController::class, 'refresh'])
+        ->name('auth.refresh')->middleware('auth:sanctum-refresh');
 /*
     |--------------------------------------------------------------------------
     | Hubs

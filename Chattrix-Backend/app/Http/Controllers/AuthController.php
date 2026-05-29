@@ -30,13 +30,9 @@ class AuthController extends Controller
             'password' => Hash::make($validatedData['password']),
         ]);
 
-        // Create Sanctum Token
-        $token = $user->createToken('auth_token')->plainTextToken;
-
         return response()->json([
             'data' => [
-                'user' => $user,
-                'token' => $token,
+                'user' => $user
             ],
             'message' => 'User registered successfully',
         ], 201);
@@ -59,10 +55,16 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        $tokenExpirationInMinutes = config('sanctum.expiration');
+
         return response()->json([
             'data' => [
                 'user' => $user,
-                'token' => $token,
+                'token' => [
+                    'access_token' => $token,
+                    'token_type' => 'Bearer',
+                    'expires_in' => $tokenExpirationInMinutes * 60, // Standard is to use seconds
+                ],
             ],
             'message' => 'User logged in successfully',
         ]);
@@ -79,4 +81,39 @@ class AuthController extends Controller
             'message' => 'Logged out successfully',
         ]);
     }
+
+
+    /**
+     * refresh token
+     */
+
+    public function refresh(Request $request): JsonResponse{
+        if(!Auth::check()){
+        return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+         $user = $request->user();
+
+         $user->currentAccessToken()->delete();
+
+         $token = $user->createToken('auth_token')->plainTextToken;
+
+         $tokenExpirationInMinutes = config('sanctum.expiration');
+
+         return response()->json([
+            'data' => [
+                'user' => $user,
+                    'token' => [
+                    'access_token' => $token,
+                    'token_type' => 'Bearer',
+                    'expires_in' => $tokenExpirationInMinutes * 60,
+                ],
+                       'message' => 'Token refreshed successfully',
+
+            ]
+
+            ]);
+
+
+
+            }
 }

@@ -23,7 +23,6 @@ type LoginSuccessResponse = {
     avatar: string;
     bio: string;
     role: string;
-    remember_token: string;
   };
   message: string;
 }

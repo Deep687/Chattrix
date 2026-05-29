@@ -22,13 +22,17 @@ export async function POST(request: Request) {
     }
 
     const cookieStore = await cookies()
-    cookieStore.set('token', data.token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7,
-    })
+    cookieStore.set(
+        'token',
+        data.data.token.access_token,
+        {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+            maxAge: data.data.token.expires_in,
+        }
+    )
 
-    return Response.json({ message: data.message, data: data.data })
+    return Response.json({ message: data.message, data: data.data.user })
 }
