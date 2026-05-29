@@ -9,16 +9,15 @@ interface User {
   avatar: string;
   bio: string;
   role: string;
-  remember_token: string;
 }
 
 // The slice state — user can be null when not logged in
 interface UserState {
-  user: User | null;
+  data: User | null;
 }
 
 const initialState: UserState = {
-  user: null,
+  data: null,
 };
 
 const userSlice = createSlice({
@@ -26,10 +25,10 @@ const userSlice = createSlice({
   initialState,
   reducers: {
     setUser: (state, action: PayloadAction<User>) => {
-      state.user = action.payload;
+      state.data = action.payload;
     },
     clearUser: (state) => {
-      state.user = null;
+      state.data = null;
     },
   },
 });
