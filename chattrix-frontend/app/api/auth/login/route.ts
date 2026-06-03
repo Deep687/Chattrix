@@ -21,18 +21,40 @@ export async function POST(request: Request) {
         return Response.json(data, { status: backendRes.status })
     }
 
+    const accessToken: string | undefined = data?.data?.access_token?.access_token
+    const refreshToken: string | undefined = data?.data?.refresh_token?.refresh_token
+
+    if (!accessToken || !refreshToken) {
+        console.error('[login route] unexpected response shape:', JSON.stringify(data))
+        return Response.json({ message: 'Login failed: malformed token response' }, { status: 502 })
+    }
+
     const cookieStore = await cookies()
     cookieStore.set(
-        'token',
-        data.data.token.access_token,
+        'access_token',
+        accessToken,
         {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
             path: '/',
-            maxAge: data.data.token.expires_in,
+            maxAge: data.data.access_token.expires_in,
         }
     )
+
+    cookieStore.set(
+        'refresh_token',
+        refreshToken,
+        {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+            maxAge: data.data.refresh_token.expires_in,
+        }
+    )
+
+
 
     return Response.json({ message: data.message, data: data.data.user })
 }
