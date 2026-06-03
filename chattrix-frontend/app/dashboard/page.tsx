@@ -18,7 +18,7 @@ export default function Dashboard() {
             const response = await axios.post('/api/auth/logout');
             console.log(response);
             dispatch(clearUser());
-            router.push('/auth/login')
+            router.push('/login')
         }
         catch (error) {
             console.error('logout failed');
