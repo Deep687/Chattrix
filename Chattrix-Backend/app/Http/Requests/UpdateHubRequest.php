@@ -6,32 +6,31 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
-class CreateHubRequest extends FormRequest
+class UpdateHubRequest extends FormRequest
 {
     public function authorize(): bool
     {
         return Auth::check();
     }
 
-    /**
-     * Validation rules.
-     */
     public function rules(): array
     {
+        $hub = $this->route('hub');
+
         return [
-            'description' => 'nullable|string|max:5000',
+            'description' => 'sometimes|nullable|string|max:5000',
 
             'slug' => [
-                'required',
+                'sometimes',
                 'string',
                 'max:255',
-                'unique:hubs,slug',
+                Rule::unique('hubs', 'slug')->ignore($hub->id),
                 'regex:/^[a-z0-9-]+$/'
             ],
 
-            'avatar' => 'nullable|image|max:2048',
+            'avatar' => 'sometimes|nullable|image|max:2048',
 
-            'privacy_type' => ['required', Rule::in(['public', 'private'])],
+            'privacy_type' => ['sometimes', Rule::in(['public', 'private'])],
         ];
     }
 }
