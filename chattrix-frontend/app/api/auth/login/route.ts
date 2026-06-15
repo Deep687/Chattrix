@@ -15,14 +15,14 @@ export async function POST(request: Request) {
         return Response.json({ message: 'Could not reach backend' }, { status: 502 })
     }
 
-    const data = await backendRes.json()
+    const data = await backendRes.json();
 
     if (!backendRes.ok) {
         return Response.json(data, { status: backendRes.status })
     }
 
-    const accessToken: string | undefined = data?.data?.access_token?.access_token
-    const refreshToken: string | undefined = data?.data?.refresh_token?.refresh_token
+    const accessToken: string | undefined = data?.data?.access_token;
+    const refreshToken: string | undefined = data?.data?.refresh_token;
 
     if (!accessToken || !refreshToken) {
         console.error('[login route] unexpected response shape:', JSON.stringify(data))
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
             path: '/',
-            maxAge: data.data.access_token.expires_in,
+            maxAge: data.data.access_expires_in,
         }
     )
 
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
             path: '/',
-            maxAge: data.data.refresh_token.expires_in,
+            maxAge: data.data.refresh_expires_in,
         }
     )
 

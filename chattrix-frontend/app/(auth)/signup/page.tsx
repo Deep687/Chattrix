@@ -41,12 +41,7 @@ const handleSubmit=async(  e: React.FormEvent<HTMLFormElement>)=>{
  setErrors({});
 
   try {
-    const response = await axios.post(
-      "https://chattrix-backend.test/api/auth/register",
-      form
-    );
-
-    // The token is now in an httpOnly cookie, no need to handle it here.
+    const response = await axios.post('/api/auth/signup', form);
 
     setSuccessMessage('Account created successfully! Redirecting to login...');
 
