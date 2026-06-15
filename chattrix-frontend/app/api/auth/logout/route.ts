@@ -8,6 +8,7 @@ export async function POST() {
 
     if (!accessToken) {
         cookieStore.delete('access_token')
+        cookieStore.delete('refresh_token')
 
         return Response.json(
             { message: 'Already logged out' },
@@ -32,6 +33,7 @@ export async function POST() {
         console.error('[logout route]', err)
 
         cookieStore.delete('access_token')
+        cookieStore.delete('refresh_token')
 
         return Response.json(
             { message: 'Logged out locally' },
