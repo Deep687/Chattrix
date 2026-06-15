@@ -19,7 +19,7 @@ class SanctumRefresh
     public function handle(Request $request, Closure $next): Response
     {
 
-        $refreshToken = $request->input('refresh_token');
+        $refreshToken = $request->header('X-Refresh-Token');
 
         Log::info('Cookie', [$refreshToken]);
 
@@ -31,36 +31,32 @@ class SanctumRefresh
 
         $hashToken = hash('sha256', $refreshToken);
 
-        $token = RefreshToken::where('token_hash',$hashToken)->first();
+        $token = RefreshToken::where('token_hash', $hashToken)->first();
 
-        if(!$token){
+        if (!$token) {
             return response()->json([
                 'message' => 'token not found'
 
-            ],401);
-        }
-        elseif($token->expires_at->isPast()){
-                return response()->json([
+            ], 401);
+
+        } elseif ($token->expires_at->isPast()) {
+            $token->delete();
+            return response()->json([
                 'message' => 'token is expired'
-
-            ],401);
-
+            ], 401);
         }
 
         $user = $token->user;
+
         if (!$user) {
-    return response()->json([
-        'message' => 'user not found'
-    ], 401);
-}
+            return response()->json([
+                'message' => 'user not found'
+            ], 401);
+        }
 
-Auth::setUser($user);
+        Auth::setUser($user);
 
-
-dd('auth done');
-
-
-
+        $request->attributes->set('refresh_token', $token);
 
         return $next($request);
     }
