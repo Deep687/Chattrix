@@ -39,12 +39,9 @@ class AuthController extends Controller
 
         $user = $this->AuthService->register($validatedData);
 
-        return response()->json([
-            'data' => [
-                'user' => new UserResource($user)
-            ],
-            'message' => 'User registered successfully',
-        ], 201);
+        return $this->success([
+            'user' => new UserResource($user)
+        ], 201, 'User registered successfully');
     }
 
     /**
@@ -60,20 +57,15 @@ class AuthController extends Controller
         $user =  $this->AuthService->AttemptLogin($validatedData);
 
         if (!$user) {
-            return response()->json([
-                'message' => 'Invalid credentials'
-            ], 401);
+            return $this->error(null, 401, 'Invalid credentials');
         }
 
         $tokens = $this->tokenService->generateToken($user);
 
-        return response()->json([
-            'data' => [
-                'user' => new UserResource($user),
-                ...$tokens
-            ],
-            'message' => 'User logged in successfully',
-        ]);
+        return $this->success([
+            'user' => new UserResource($user),
+            ...$tokens
+        ], 200, 'User logged in successfully');
     }
 
     /**
@@ -87,9 +79,7 @@ class AuthController extends Controller
 
         $this->AuthService->AttemptLogout($request->bearerToken());
 
-        return response()->json([
-            'message' => 'Logged out successfully',
-        ]);
+        return $this->success(null, 200, 'Logged out successfully');
     }
 
 
@@ -105,7 +95,7 @@ class AuthController extends Controller
         // Assuming a `sanctumRefresh` middleware has already authenticated the user.
         // If the middleware fails, it will return a 401, and this code will not be reached.
         if (!Auth::check()) {
-            return response()->json(['message' => 'Unauthenticated'], 401);
+            return $this->error(null, 401, 'Unauthenticated');
         }
 
         $user = Auth::user();
@@ -115,12 +105,9 @@ class AuthController extends Controller
 
         $tokens = $this->tokenService->generateToken($user);
 
-        return response()->json([
-            'data' => [
-                'user' => new UserResource($user),
-                ...$tokens
-            ],
-            'message' => 'Token refreshed successfully',
-        ]);
+        return $this->success([
+            'user' => new UserResource($user),
+            ...$tokens
+        ], 200, 'Token refreshed successfully');
     }
 }
