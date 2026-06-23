@@ -1,11 +1,12 @@
 import { cookies } from 'next/headers'
+import { API_ROUTES } from '@/lib/api'
 
 export async function POST(request: Request) {
     const body = await request.json()
 
     let backendRes: Response
     try {
-        backendRes = await fetch(`${process.env.BACKEND_URL}/api/auth/login`, {
+        backendRes = await fetch(API_ROUTES.auth.login, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
             body: JSON.stringify(body),
