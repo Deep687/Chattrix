@@ -110,4 +110,19 @@ class AuthController extends Controller
             ...$tokens
         ], 200, 'Token refreshed successfully');
     }
+
+    /**
+     * Get the currently authenticated user.
+     *
+     * Retrieves the authenticated user's information from the current access token.
+     *
+     * @param Request $request The incoming authenticated request.
+     * @return JsonResponse
+     */
+    public function me(Request $request): JsonResponse
+    {
+        return $this->success([
+            'user' => new UserResource($request->user()),
+        ]);
+    }
 }

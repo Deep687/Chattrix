@@ -1,6 +1,6 @@
 # Chattrix — Learning Roadmap
 
-> **Goal:** Build a full-stack, AI-powered Reddit-like platform from scratch — and ship it to a real server.
+> **Goal:** Build a full-stack community platform with posts, comments, voting, and AI-assisted features (summaries, moderation, semantic search) — and ship it to a real server.
 > By the end, you will have covered full-stack development (Laravel + Next.js) and DevOps (Docker, CI/CD, deployment, monitoring) in one real project.
 
 ---
@@ -14,6 +14,8 @@ Build the feature  →  Write tests  →  Ship it  →  Verify it works in prod
 ```
 
 DevOps is not a separate topic. It is what happens every time you ship.
+
+**Note on "ship":** until Milestone 6 (Deploy to a Real Server), there is no production server yet. For Milestones 1–5, "ship it" means: it runs reproducibly via `docker compose up` and passes its own tests. From Milestone 6 onward, "ship it" means it is live on the real server.
 
 ---
 
@@ -82,7 +84,7 @@ DevOps is not a separate topic. It is what happens every time you ship.
 - [ ] Posts CRUD API (text, link, image post types)
 - [ ] Upvote / downvote endpoint (toggle logic)
 - [ ] Vote score calculation
-- [ ] Image upload (local disk for now, S3 later)
+- [ ] Image upload (local disk for now — moved to S3/CDN in Milestone 10)
 - [ ] Post feed sorted by hot / new / top
 
 ### Frontend Tasks
@@ -193,9 +195,11 @@ DevOps is not a separate topic. It is what happens every time you ship.
 
 ---
 
-## Milestone 8 — AI Features
+## Milestone 8 — AI Summary & Moderation
 
-**What you will learn:** LLM API integration, prompt engineering, async jobs, streaming responses.
+**What you will learn:** LLM API integration, prompt engineering, async jobs.
+
+**Why now:** These two features call an LLM on existing text content without needing new infrastructure. They're a lighter entry point into AI work before the heavier embeddings milestone that follows.
 
 ### AI Summary
 - [ ] Call Claude/OpenAI API on long post bodies
@@ -206,6 +210,19 @@ DevOps is not a separate topic. It is what happens every time you ship.
 - [ ] Run new posts through a moderation prompt before publishing
 - [ ] Auto-hold flagged content for review
 - [ ] Build a simple mod queue UI
+
+### Concepts Covered
+- How LLM APIs work (tokens, context window, cost)
+- Prompt engineering basics
+- Laravel queued jobs (async AI calls so the request doesn't wait)
+
+---
+
+## Milestone 9 — Semantic Search & Embeddings
+
+**What you will learn:** Vector embeddings, similarity search, standing up a new piece of infrastructure.
+
+**Why now:** Unlike Milestone 8, this requires generating, storing, and querying vectors — a different skill set from calling a text-completion API, and the most infrastructure-heavy AI work in the roadmap. It gets a dedicated milestone rather than being squeezed in alongside summary/moderation.
 
 ### Smart Search
 - [ ] Generate embeddings for posts on creation
@@ -218,37 +235,17 @@ DevOps is not a separate topic. It is what happens every time you ship.
 - [ ] Display "Related" section at bottom of post page
 
 ### Concepts Covered
-- How LLM APIs work (tokens, context window, cost)
-- Prompt engineering basics
-- Laravel queued jobs (async AI calls so the request doesn't wait)
 - What vector embeddings are and how similarity search works
-
----
-
-## Milestone 9 — Production Hardening
-
-**What you will learn:** Observability, error tracking, zero-downtime deploys, rate limiting.
-
-### Tasks
-- [ ] Set up error tracking (Sentry — free tier)
-- [ ] Set up uptime monitoring (UptimeRobot — free)
-- [ ] Add rate limiting to auth and AI endpoints
-- [ ] Implement zero-downtime deploys (blue-green or rolling)
-- [ ] Add structured logging to Laravel (JSON logs)
-- [ ] Review and fix N+1 queries with Laravel Debugbar
-- [ ] Add database indexes on high-traffic columns
-
-### Concepts Covered
-- Why structured logs are better than `dd()`
-- What rate limiting protects against
-- How zero-downtime deploys work
-- Database query planning and indexing
+- Choosing and setting up a vector store
+- Approximate nearest neighbor search basics
 
 ---
 
 ## Milestone 10 — Media Storage & CDN
 
 **What you will learn:** Cloud storage, CDN, presigned URLs, cost management.
+
+**Why now:** Posts and avatars are currently stored on the app server's local disk. Move this off-server before the production hardening pass, since serving user uploads from the application server is exactly the kind of fragility hardening is meant to eliminate.
 
 ### Tasks
 - [ ] Migrate image uploads from local disk to S3 (or Cloudflare R2)
@@ -261,6 +258,30 @@ DevOps is not a separate topic. It is what happens every time you ship.
 - How S3 presigned URLs work
 - What a CDN does and when you need one
 - Cost difference: serving from EC2 vs CloudFront vs R2
+
+---
+
+## Milestone 11 — Production Hardening
+
+**What you will learn:** Observability, error tracking, zero-downtime deploys, rate limiting, backups.
+
+### Tasks
+- [ ] Set up error tracking (Sentry — free tier)
+- [ ] Set up uptime monitoring (UptimeRobot — free)
+- [ ] Add rate limiting to auth and AI endpoints
+- [ ] Implement zero-downtime deploys (blue-green or rolling)
+- [ ] Add structured logging to Laravel (JSON logs)
+- [ ] Review and fix N+1 queries with Laravel Debugbar
+- [ ] Add database indexes on high-traffic columns
+- [ ] Set up automated database backups
+- [ ] Document and test a restore from backup (a backup you haven't restored isn't verified)
+
+### Concepts Covered
+- Why structured logs are better than `dd()`
+- What rate limiting protects against
+- How zero-downtime deploys work
+- Database query planning and indexing
+- Backup strategies and why restore testing matters
 
 ---
 
@@ -281,6 +302,7 @@ DevOps is not a separate topic. It is what happens every time you ship.
 - Cloud storage (S3/R2) and CDN
 - Error tracking and uptime monitoring
 - Zero-downtime deployment strategies
+- Database backups and restore testing
 
 ---
 
@@ -295,10 +317,11 @@ DevOps is not a separate topic. It is what happens every time you ship.
 | 5 — Comments | 2 weeks |
 | 6 — Deploy | 1 week |
 | 7 — User Profiles | 1 week |
-| 8 — AI Features | 3 weeks |
-| 9 — Production Hardening | 1 week |
+| 8 — AI Summary & Moderation | 1.5 weeks |
+| 9 — Semantic Search & Embeddings | 2.5 weeks |
 | 10 — Media & CDN | 1 week |
-| **Total** | **~15 weeks (4 months)** |
+| 11 — Production Hardening | 1 week |
+| **Total** | **~16 weeks (~4 months)** |
 
 This assumes consistent work of a few hours per week. Go faster if you can. The important thing is finishing, not the timeline.
 
@@ -308,6 +331,6 @@ This assumes consistent work of a few hours per week. Go faster if you can. The 
 
 1. **Never skip a milestone to get to the fun stuff.** Docker before CI. CI before deploy. Order matters.
 2. **Always understand before copy-pasting.** If you paste something without knowing why it works, it will break in production and you won't know how to fix it.
-3. **Ship after every milestone.** A feature that only runs on your laptop doesn't count.
+3. **Ship after every milestone.** Before Milestone 6, that means it runs reproducibly via Docker and passes its tests. From Milestone 6 onward, it means it's live on the real server.
 4. **Break things in dev, not in prod.** That's what Docker and CI are for.
 5. **Read the official docs.** Laravel docs, Next.js docs, Docker docs — they are excellent.
