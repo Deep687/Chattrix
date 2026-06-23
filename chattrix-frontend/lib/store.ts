@@ -1,9 +1,9 @@
 import { configureStore } from '@reduxjs/toolkit'
-import userReducer from './features/userSlice' // ✅ import the reducer, not actions
+import userReducer from './features/userSlice'
 
 export const store = configureStore({
     reducer: {
-        user: userReducer, // ✅ register it here
+        user: userReducer,
     },
 })
 

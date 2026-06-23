@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers'
+import { API_ROUTES } from '@/lib/api'
 
 export async function POST() {
     const cookieStore = await cookies()
@@ -20,7 +21,7 @@ export async function POST() {
 
     try {
         backendRes = await fetch(
-            `${process.env.BACKEND_URL}/api/auth/logout`,
+            API_ROUTES.auth.logout,
             {
                 method: 'POST',
                 headers: {
