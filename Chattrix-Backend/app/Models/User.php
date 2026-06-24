@@ -34,17 +34,19 @@ class User extends Authenticatable
         ];
     }
 
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === UserRole::SuperAdmin;
+    }
+
     public function ownedHubs(): HasMany
     {
         return $this->hasMany(Hub::class, 'owner_id');
     }
 
-    public function hubs():BelongsToMany
+    public function hubs(): BelongsToMany
     {
-        return $this->belongsToMany(Hub::class,'hub_member');
-
-    }
-    public function isSuperAdmin(): bool {
-        return $this->role === UserRole::SuperAdmin;
+        return $this->belongsToMany(Hub::class)
+            ->withPivot('joined_at');
     }
 }
