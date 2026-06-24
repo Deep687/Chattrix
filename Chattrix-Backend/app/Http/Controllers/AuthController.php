@@ -17,20 +17,18 @@ use App\Http\Resources\UserResource;
  */
 class AuthController extends Controller
 {
+    use ApiResponser;
+
     /**
-     * Create a new AuthController instance.
-     *
-     * @param AuthService $AuthService The service for authentication logic.
-     * @param TokenService $tokenService The service for token generation.
+     * @param AuthService $AuthService
+     * @param TokenService $tokenService
      */
     public function __construct(private AuthService $AuthService, private TokenService $tokenService) {}
-
-    use ApiResponser;
 
     /**
      * Register a new user.
      *
-     * @param CreateUserRequest $request The request containing user registration data.
+     * @param CreateUserRequest $request
      * @return JsonResponse
      */
     public function register(CreateUserRequest $request): JsonResponse
@@ -47,7 +45,7 @@ class AuthController extends Controller
     /**
      * Authenticate a user and return tokens.
      *
-     * @param LoginUserRequest $request The request containing user login credentials.
+     * @param LoginUserRequest $request
      * @return JsonResponse
      */
     public function login(LoginUserRequest $request): JsonResponse
@@ -71,7 +69,7 @@ class AuthController extends Controller
     /**
      * Log out the authenticated user by invalidating their tokens.
      *
-     * @param Request $request The incoming HTTP request.
+     * @param Request $request
      * @return JsonResponse
      */
     public function logout(Request $request): JsonResponse
@@ -86,10 +84,9 @@ class AuthController extends Controller
     /**
      * Refresh the authentication tokens for the currently authenticated user.
      *
-     * @param Request $request The incoming HTTP request, expecting a valid refresh token.
+     * @param Request $request
      * @return JsonResponse
      */
-
     public function refresh(Request $request): JsonResponse
     {
         // Assuming a `sanctumRefresh` middleware has already authenticated the user.
@@ -114,9 +111,7 @@ class AuthController extends Controller
     /**
      * Get the currently authenticated user.
      *
-     * Retrieves the authenticated user's information from the current access token.
-     *
-     * @param Request $request The incoming authenticated request.
+     * @param Request $request
      * @return JsonResponse
      */
     public function me(Request $request): JsonResponse

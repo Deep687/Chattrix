@@ -14,11 +14,17 @@ return new class extends Migration
         Schema::create('hubs', function (Blueprint $table) {
             $table->id();
 
+            $table->string('name');
             $table->text('description')->nullable();
-            $table->string('slug')->unique();
             $table->string('avatar')->nullable();
-            $table->string('privacy_type');
-            $table->foreignId('owner_id')->constrained('users');
+            $table->string('slug')->unique();
+
+            $table->enum('privacy_type', ['public', 'private']);
+
+            $table->foreignId('owner_id')
+                ->constrained('users')
+                ->cascadeOnDelete();
+
             $table->timestamps();
         });
     }
