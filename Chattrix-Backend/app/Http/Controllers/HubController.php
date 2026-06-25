@@ -2,87 +2,122 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Hub\CreateHubAction;
+use App\Actions\Hub\DeleteHubAction;
+use App\Actions\Hub\UpdateHubAction;
 use App\Http\Requests\CreateHubRequest;
 use App\Http\Requests\UpdateHubRequest;
-use Illuminate\Http\JsonResponse;
+use App\Http\Resources\HubResource;
 use App\Models\Hub;
+use App\Services\HubService;
+use App\Traits\ApiResponser;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class HubController extends Controller
 {
-    use AuthorizesRequests;
+    use ApiResponser, AuthorizesRequests;
 
+    /**
+     * @param HubService $hubService
+     * @param CreateHubAction $createHubAction
+     * @param UpdateHubAction $updateHubAction
+     * @param DeleteHubAction $deleteHubAction
+     */
+    public function __construct(
+        private HubService $hubService,
+        private CreateHubAction $createHubAction,
+        private UpdateHubAction $updateHubAction,
+        private DeleteHubAction $deleteHubAction,
+    ) {}
+
+    /**
+     * List all hubs with pagination.
+     *
+     * @return JsonResponse
+     */
     public function index(): JsonResponse
     {
         $this->authorize('viewAny', Hub::class);
 
-        $hubs = Hub::paginate(15);
+        $hubs = $this->hubService->paginate();
 
-        return response()->json([
-            'message' => 'Hubs fetched successfully',
-            'data' => $hubs
-        ]);
+        return $this->success([
+            'hubs'       => HubResource::collection($hubs),
+            'pagination' => [
+                'total'        => $hubs->total(),
+                'per_page'     => $hubs->perPage(),
+                'current_page' => $hubs->currentPage(),
+                'last_page'    => $hubs->lastPage(),
+            ],
+        ], 200, 'Hubs fetched successfully');
     }
 
+    /**
+     * Create a new hub.
+     *
+     * @param CreateHubRequest $request
+     * @return JsonResponse
+     */
     public function store(CreateHubRequest $request): JsonResponse
     {
         $this->authorize('create', Hub::class);
 
-        $data = $request->validated();
+        $hub = $this->createHubAction->handle(
+            $request->validated(),
+            Auth::id(),
+            $request->file('avatar'),
+        );
 
-        if ($request->hasFile('avatar')) {
-            $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
-        }
-
-        $hub = Hub::create(array_merge($data, ['owner_id' => Auth::id()]));
-
-        return response()->json([
-            'message' => 'Hub created successfully',
-            'data' => $hub,
-        ], 201);
+        return $this->success(new HubResource($hub), 201, 'Hub created successfully');
     }
 
+    /**
+     * Show a single hub.
+     *
+     * @param Hub $hub
+     * @return JsonResponse
+     */
     public function show(Hub $hub): JsonResponse
     {
         $this->authorize('view', $hub);
 
-        return response()->json([
-            'message' => 'Hub fetched successfully',
-            'data' => $hub,
-        ], 200);
+        return $this->success(new HubResource($hub), 200, 'Hub fetched successfully');
     }
 
+    /**
+     * Update an existing hub.
+     *
+     * @param UpdateHubRequest $request
+     * @param Hub $hub
+     * @return JsonResponse
+     */
     public function update(UpdateHubRequest $request, Hub $hub): JsonResponse
     {
         $this->authorize('update', $hub);
 
-        $data = $request->validated();
+        $hub = $this->updateHubAction->handle(
+            $hub,
+            $request->validated(),
+            $request->file('avatar'),
+        );
 
-        if ($request->hasFile('avatar')) {
-            if ($hub->avatar) {
-                Storage::disk('public')->delete($hub->avatar);
-            }
-            $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
-        }
-
-        $hub->update($data);
-
-        return response()->json([
-            'message' => 'Hub updated successfully',
-            'data' => $hub,
-        ], 200);
+        return $this->success(new HubResource($hub), 200, 'Hub updated successfully');
     }
 
+    /**
+     * Delete a hub.
+     *
+     * @param Hub $hub
+     * @return JsonResponse
+     */
     public function destroy(Hub $hub): JsonResponse
     {
         $this->authorize('delete', $hub);
 
-        $hub->delete();
+        $this->deleteHubAction->handle($hub);
 
-        return response()->json([
-            'message' => 'Hub deleted successfully',
-        ], 200);
+        return $this->success(null, 200, 'Hub deleted successfully');
     }
 }
