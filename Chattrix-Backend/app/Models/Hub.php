@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Hub extends Model
 {
     protected $fillable = [
+        'name',
         'description',
         'slug',
         'avatar',
@@ -23,11 +24,7 @@ class Hub extends Model
 
     public function members(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'hub_member')
-            ->withPivot('role')->as('membership')
-            ->withCasts([
-                'role' => HubRole::class,
-            ])
-            ->withTimestamps('joined_at');
+        return $this->belongsToMany(User::class)
+            ->withPivot('joined_at');
     }
 }
