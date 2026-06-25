@@ -56,7 +56,7 @@ For the detailed auth design, see [docs/AUTH_BFF.md](docs/AUTH_BFF.md).
 | Area | Stack |
 | --- | --- |
 | Frontend | Next.js 16, React 19, TypeScript |
-| Styling | Tailwind CSS v4 |
+| Styling | Tailwind CSS v4 | Will add styling libraries later
 | State | Redux Toolkit, React Redux |
 | Backend | Laravel 13, PHP 8.3 |
 | Auth | Laravel Sanctum access tokens + custom refresh tokens |
