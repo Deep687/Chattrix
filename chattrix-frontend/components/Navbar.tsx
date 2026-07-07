@@ -13,28 +13,23 @@ export default function Navbar() {
   const handleLogout = async () => {
     try {
       await axios.post("/api/auth/logout");
-      dispatch(clearUser());
-      router.push("/login");
-    } catch {
+    } finally {
       dispatch(clearUser());
       router.push("/login");
     }
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/6 bg-[#0c0808]/90 backdrop-blur">
-      <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
+    <header className="sticky top-0 z-50 border-b border-white/5 bg-surface/90 backdrop-blur">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
 
         <Link href={user ? "/dashboard" : "/"} className="text-xl font-bold tracking-tight">
-          Chatt<span className="text-red-500">rix</span>
+          Chatt<span className="text-brand">rix</span>
         </Link>
 
         {user ? (
           <div className="flex items-center gap-4">
-            <span className="text-sm text-white/60">
-              {user.name}
-            </span>
-
+            <span className="hidden sm:block text-sm text-dim">{user.name}</span>
             <button
               onClick={handleLogout}
               className="text-sm border border-white/15 hover:border-white/30 px-4 py-1.5 rounded-lg transition-colors"
@@ -50,10 +45,9 @@ export default function Navbar() {
             >
               Log in
             </Link>
-
             <Link
               href="/signup"
-              className="text-sm bg-red-700 hover:bg-red-600 px-4 py-1.5 rounded-lg font-semibold transition-colors"
+              className="text-sm bg-brand hover:bg-red-600 text-white px-4 py-1.5 rounded-lg font-semibold transition-colors"
             >
               Sign up
             </Link>

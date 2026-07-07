@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\HubRole;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -14,8 +13,7 @@ class Hub extends Model
         'description',
         'slug',
         'avatar',
-        'privacy_type',
-        'owner_id',
+        'privacy_type'
     ];
     public function owner(): BelongsTo
     {
