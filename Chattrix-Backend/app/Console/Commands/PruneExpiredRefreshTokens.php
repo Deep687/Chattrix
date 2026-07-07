@@ -28,7 +28,7 @@ class PruneExpiredRefreshTokens extends Command
     {
         $this->info('Pruning expired refresh tokens...');
 
-        $count = DB::table('refresh_tokens')->where('expires_at', '<', now())->delete();
+        $count = DB::table('refresh_token')->where('expires_at', '<', now())->delete();
 
         $this->info("Successfully pruned {$count} expired refresh tokens.");
     }

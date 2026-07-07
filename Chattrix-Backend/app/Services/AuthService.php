@@ -2,10 +2,11 @@
 
 namespace App\Services;
 
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
 use App\Models\RefreshToken;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\PersonalAccessToken;
 
 /**
@@ -21,7 +22,7 @@ class AuthService
     /**
      * Create a new user record in the database.
      *
-     * @param array $validatedData The validated data from the registration request.
+     * @param  array  $validatedData  The validated data from the registration request.
      * @return User The newly created user.
      */
     public function register(array $validatedData): User
@@ -46,7 +47,7 @@ class AuthService
  */
     public function AttemptLogin(array $validatedData): ?User
     {
-        if (!Auth::attempt($validatedData)) {
+        if (! Auth::attempt($validatedData)) {
             return null;
         }
 
@@ -58,12 +59,11 @@ class AuthService
     /**
      * Log out a user by deleting their access and refresh tokens.
      *
-     * @param string $bearerToken The user's current access token.
-     * @return void
+     * @param  string|null  $bearerToken  The user's current access token.
      */
-    public function AttemptLogout(string $bearerToken): void
+    public function AttemptLogout(?string $bearerToken): void
     {
-        if (!$bearerToken) {
+        if (! $bearerToken) {
             return;
         }
 
@@ -81,10 +81,9 @@ class AuthService
     /**
      * Invalidate old tokens after a successful token refresh.
      *
-     * @param \Illuminate\Http\Request $request The request, expected to contain the user and the RefreshToken model.
-     * @return void
+     * @param  Request  $request  The request, expected to contain the user and the RefreshToken model.
      */
-    public function invalidateTokensAfterRefresh(\Illuminate\Http\Request $request): void
+    public function invalidateTokensAfterRefresh(Request $request): void
     {
         $user = $request->user();
 
@@ -96,8 +95,10 @@ class AuthService
         // 2. Delete the specific refresh token that was used for this request.
         // We expect the middleware to have attached the RefreshToken model to the request.
         // This implements refresh token rotation.
-        if ($request->refreshTokenModel instanceof RefreshToken) {
-            $request->refreshTokenModel->delete();
+        $refreshToken = $request->attributes->get('refresh_token');
+
+        if ($refreshToken instanceof RefreshToken) {
+            $refreshToken->delete();
         }
     }
 }
