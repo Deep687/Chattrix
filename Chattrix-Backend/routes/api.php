@@ -43,5 +43,7 @@ Route::post('/auth/refresh', [AuthController::class, 'refresh'])
 
 Route::middleware('auth:sanctum')->group(function () {
 
+    Route::get('/hubs/me', [HubController::class, 'myHubs']);
+
     Route::apiResource('hubs', HubController::class);
 });

@@ -13,8 +13,15 @@ class Hub extends Model
         'description',
         'slug',
         'avatar',
-        'privacy_type'
+        'privacy_type',
+        'owner_id',
     ];
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'owner_id');
