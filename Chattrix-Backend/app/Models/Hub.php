@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\HubRole;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -17,6 +16,12 @@ class Hub extends Model
         'privacy_type',
         'owner_id',
     ];
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'owner_id');
