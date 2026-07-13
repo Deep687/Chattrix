@@ -19,6 +19,8 @@ class CreateHubRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'name' => 'required|string|max:255',
+
             'description' => 'nullable|string|max:5000',
 
             'slug' => [
@@ -26,7 +28,7 @@ class CreateHubRequest extends FormRequest
                 'string',
                 'max:255',
                 'unique:hubs,slug',
-                'regex:/^[a-z0-9-]+$/'
+                'regex:/^[a-z0-9-]+$/',
             ],
 
             'avatar' => 'nullable|image|max:2048',

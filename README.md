@@ -9,18 +9,15 @@ The current codebase contains the core foundation: authentication, token refresh
 - [Architecture](#architecture)
 - [Tech Stack](#tech-stack)
 - [Repository Layout](#repository-layout)
-- [Implemented Features](#implemented-features)
 - [Prerequisites](#prerequisites)
 - [Environment](#environment)
 - [Installation](#installation)
 - [Running Locally](#running-locally)
-- [Useful Commands](#useful-commands)
 - [API Overview](#api-overview)
+- [Implemented Features](#implemented-features)
 - [Auth Summary](#auth-summary)
-- [Current Development Priorities](#current-development-priorities)
 - [Security Notes](#security-notes)
 - [Documentation](#documentation)
-- [License](#license)
 
 ## Architecture
 
@@ -56,7 +53,7 @@ For the detailed auth design, see [docs/AUTH_BFF.md](docs/AUTH_BFF.md).
 | Area | Stack |
 | --- | --- |
 | Frontend | Next.js 16, React 19, TypeScript |
-| Styling | Tailwind CSS v4 | Will add styling libraries later
+| Styling | Tailwind CSS v4 |
 | State | Redux Toolkit, React Redux |
 | Backend | Laravel 13, PHP 8.3 |
 | Auth | Laravel Sanctum access tokens + custom refresh tokens |
@@ -137,7 +134,8 @@ Create `chattrix-frontend/.env.local` from `chattrix-frontend/.env.local.example
 ```env
 BACKEND_URL=https://chattrix-backend.test
 
-# Development only when Node fetch does not trust Herd's local CA.
+# Set to 0 only in local development when Node fetch does not trust Herd's local CA.
+# Never set this in staging or production — it disables TLS certificate verification entirely.
 NODE_TLS_REJECT_UNAUTHORIZED=0
 ```
 
@@ -176,7 +174,7 @@ Start the Next.js frontend from the repo root:
 yarn dev
 ```
 
-The frontend runs through the workspace script and opens on the Next.js dev server, usually `http://localhost:3000`.
+The frontend runs on `http://localhost:3000`.
 
 ## Useful Commands
 
@@ -193,9 +191,9 @@ From `Chattrix-Backend`:
 
 ```bash
 php artisan migrate      # Run database migrations
-php artisan test         # Run backend tests
 php artisan route:list   # Inspect API routes
-composer run test        # Clear config and run Laravel tests
+php artisan test         # Run backend tests
+composer run test        # Clear config cache, then run backend tests (use this if tests behave unexpectedly)
 ```
 
 ## API Overview
@@ -257,4 +255,4 @@ The roadmap in [ROADMAP.md](ROADMAP.md) is the source of truth for upcoming mile
 
 ## License
 
-No license has been added yet. Add a `LICENSE` file (e.g. MIT, Apache 2.0) to clarify how others may use this code.
+Unlicensed — all rights reserved until a `LICENSE` file is added.
