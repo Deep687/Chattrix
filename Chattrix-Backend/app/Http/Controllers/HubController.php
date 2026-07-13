@@ -11,9 +11,9 @@ use App\Http\Resources\HubResource;
 use App\Models\Hub;
 use App\Services\HubService;
 use App\Traits\ApiResponser;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class HubController extends Controller
 {
@@ -44,12 +44,12 @@ class HubController extends Controller
         $hubs = $this->hubService->paginate();
 
         return $this->success([
-            'hubs'       => HubResource::collection($hubs),
+            'hubs' => HubResource::collection($hubs),
             'pagination' => [
-                'total'        => $hubs->total(),
-                'per_page'     => $hubs->perPage(),
+                'total' => $hubs->total(),
+                'per_page' => $hubs->perPage(),
                 'current_page' => $hubs->currentPage(),
-                'last_page'    => $hubs->lastPage(),
+                'last_page' => $hubs->lastPage(),
             ],
         ], 200, 'Hubs fetched successfully');
     }
@@ -57,7 +57,7 @@ class HubController extends Controller
     /**
      * Create a new hub.
      *
-     * @param CreateHubRequest $request
+     * @param  CreateHubRequest  $request
      * @return JsonResponse
      */
     public function store(CreateHubRequest $request): JsonResponse
@@ -76,7 +76,7 @@ class HubController extends Controller
     /**
      * Show a single hub.
      *
-     * @param Hub $hub
+     * @param  Hub  $hub
      * @return JsonResponse
      */
     public function show(Hub $hub): JsonResponse
@@ -89,8 +89,8 @@ class HubController extends Controller
     /**
      * Update an existing hub.
      *
-     * @param UpdateHubRequest $request
-     * @param Hub $hub
+     * @param  UpdateHubRequest  $request
+     * @param  Hub  $hub
      * @return JsonResponse
      */
     public function update(UpdateHubRequest $request, Hub $hub): JsonResponse
@@ -109,7 +109,7 @@ class HubController extends Controller
     /**
      * Delete a hub.
      *
-     * @param Hub $hub
+     * @param  Hub  $hub
      * @return JsonResponse
      */
     public function destroy(Hub $hub): JsonResponse
@@ -119,5 +119,19 @@ class HubController extends Controller
         $this->deleteHubAction->handle($hub);
 
         return $this->success(null, 200, 'Hub deleted successfully');
+    }
+
+    /**
+     * Get user's hubs
+     *
+     * @return JsonResponse
+     */
+    public function myHubs(): JsonResponse
+    {
+        $this->authorize('viewAny', Hub::class);
+
+        $hubs = $this->hubService->fetchMyHubs(Auth::user());
+
+        return $this->success($hubs, 200, 'Hubs fetched successfully');
     }
 }
