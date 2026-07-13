@@ -18,6 +18,8 @@ class UpdateHubRequest extends FormRequest
         $hub = $this->route('hub');
 
         return [
+            'name' => 'sometimes|string|max:255',
+
             'description' => 'sometimes|nullable|string|max:5000',
 
             'slug' => [
@@ -25,7 +27,7 @@ class UpdateHubRequest extends FormRequest
                 'string',
                 'max:255',
                 Rule::unique('hubs', 'slug')->ignore($hub->id),
-                'regex:/^[a-z0-9-]+$/'
+                'regex:/^[a-z0-9-]+$/',
             ],
 
             'avatar' => 'sometimes|nullable|image|max:2048',
