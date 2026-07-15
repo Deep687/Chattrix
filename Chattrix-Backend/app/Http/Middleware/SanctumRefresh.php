@@ -5,9 +5,8 @@ namespace App\Http\Middleware;
 use App\Models\RefreshToken;
 use Closure;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response;
 
 class SanctumRefresh
 {
@@ -21,11 +20,9 @@ class SanctumRefresh
 
         $refreshToken = $request->header('X-Refresh-Token');
 
-        Log::info('Cookie', [$refreshToken]);
-
-        if (!$refreshToken) {
+        if (! $refreshToken) {
             return response()->json([
-                'message' => 'token is required'
+                'message' => 'token is required',
             ], 401);
         }
 
@@ -33,24 +30,25 @@ class SanctumRefresh
 
         $token = RefreshToken::where('token_hash', $hashToken)->first();
 
-        if (!$token) {
+        if (! $token) {
             return response()->json([
-                'message' => 'token not found'
+                'message' => 'token not found',
 
             ], 401);
 
         } elseif ($token->expires_at->isPast()) {
             $token->delete();
+
             return response()->json([
-                'message' => 'token is expired'
+                'message' => 'token is expired',
             ], 401);
         }
 
         $user = $token->user;
 
-        if (!$user) {
+        if (! $user) {
             return response()->json([
-                'message' => 'user not found'
+                'message' => 'user not found',
             ], 401);
         }
 

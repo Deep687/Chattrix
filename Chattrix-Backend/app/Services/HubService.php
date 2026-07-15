@@ -29,4 +29,17 @@ class HubService
             'joined' => $user->hubs()->get(),
         ];
     }
+
+    /**
+     * @param  Hub  $hub
+     * @return Collection<int, User>
+     */
+    public function fetchMembers(Hub $hub): Collection
+    {
+        return $hub->members()
+            ->get()
+            ->each(fn (User $member) => $member->is_owner = $member->id === $hub->owner_id)
+            ->sortByDesc('is_owner')
+            ->values();
+    }
 }
