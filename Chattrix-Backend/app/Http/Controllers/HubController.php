@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Actions\Hub\CreateHubAction;
 use App\Actions\Hub\DeleteHubAction;
+use App\Actions\Hub\JoinHubAction;
 use App\Actions\Hub\UpdateHubAction;
 use App\Http\Requests\CreateHubRequest;
 use App\Http\Requests\UpdateHubRequest;
+use App\Http\Resources\HubMemberResource;
 use App\Http\Resources\HubResource;
 use App\Models\Hub;
 use App\Services\HubService;
@@ -20,16 +22,18 @@ class HubController extends Controller
     use ApiResponser, AuthorizesRequests;
 
     /**
-     * @param HubService $hubService
-     * @param CreateHubAction $createHubAction
-     * @param UpdateHubAction $updateHubAction
-     * @param DeleteHubAction $deleteHubAction
+     * @param  HubService  $hubService
+     * @param  CreateHubAction  $createHubAction
+     * @param  UpdateHubAction  $updateHubAction
+     * @param  DeleteHubAction  $deleteHubAction
+     * @param  JoinHubAction  $joinHubAction
      */
     public function __construct(
         private HubService $hubService,
         private CreateHubAction $createHubAction,
         private UpdateHubAction $updateHubAction,
         private DeleteHubAction $deleteHubAction,
+        private JoinHubAction $joinHubAction,
     ) {}
 
     /**
@@ -119,6 +123,40 @@ class HubController extends Controller
         $this->deleteHubAction->handle($hub);
 
         return $this->success(null, 200, 'Hub deleted successfully');
+    }
+
+    /**
+     * Join a public hub.
+     *
+     * @param  Hub  $hub
+     * @return JsonResponse
+     */
+    public function join(Hub $hub): JsonResponse
+    {
+        $this->authorize('join', $hub);
+
+        $joined = $this->joinHubAction->handle($hub, Auth::user());
+
+        if (! $joined) {
+            return $this->error(null, 409, 'You are already a member of this hub');
+        }
+
+        return $this->success(new HubResource($hub), 200, 'Joined hub successfully');
+    }
+
+    /**
+     * List a hub's members.
+     *
+     * @param  Hub  $hub
+     * @return JsonResponse
+     */
+    public function members(Hub $hub): JsonResponse
+    {
+        $this->authorize('view', $hub);
+
+        $members = $this->hubService->fetchMembers($hub);
+
+        return $this->success(HubMemberResource::collection($members), 200, 'Members fetched successfully');
     }
 
     /**

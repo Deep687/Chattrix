@@ -31,9 +31,14 @@ const hubsSlice = createSlice({
       state.owned = [];
       state.joined = [];
     },
+    addJoinedHub: (state, action: PayloadAction<Hub>) => {
+      if (!state.joined.some((hub) => hub.id === action.payload.id)) {
+        state.joined.push(action.payload);
+      }
+    },
   },
 });
 
-export const { setHubs, clearHubs } = hubsSlice.actions;
+export const { setHubs, clearHubs, addJoinedHub } = hubsSlice.actions;
 
 export default hubsSlice.reducer;
