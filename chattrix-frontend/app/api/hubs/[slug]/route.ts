@@ -1,39 +1,31 @@
-import { cookies } from "next/headers";
 import { API_ROUTES } from "@/lib/api";
+import { proxyToBackend } from "@/lib/backendProxy";
 
 export async function GET(
     request: Request,
     { params }: { params: Promise<{ slug: string }> }
 ) {
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get("access_token");
-
-    if (!accessToken) {
-        return Response.json(
-            { message: "No access token found" },
-            { status: 401 }
-        );
-    }
-
     const { slug } = await params;
 
-    try {
-        const response = await fetch(`${API_ROUTES.hubs}/${slug}`, {
-            headers: {
-                Authorization: `Bearer ${accessToken.value}`,
-                Accept: "application/json",
-            },
-        });
+    return proxyToBackend(`${API_ROUTES.hubs}/${slug}`, {
+        errorLabel: "Hub Route",
+    });
+}
 
-        const data = await response.json();
+export async function POST(
+    request: Request,
+    { params }: { params: Promise<{ slug: string }> }
+) {
+    const { slug } = await params;
+    const formData = await request.formData();
 
-        return Response.json(data, { status: response.status });
-    } catch (error) {
-        console.error("[Hub Route]", error);
+    // Laravel can't parse multipart bodies on PUT, so the update is spoofed
+    // via a POST with a `_method` field.
+    formData.set("_method", "PUT");
 
-        return Response.json(
-            { message: "Internal Server Error" },
-            { status: 500 }
-        );
-    }
+    return proxyToBackend(`${API_ROUTES.hubs}/${slug}`, {
+        method: "POST",
+        body: formData,
+        errorLabel: "Hub Update Route",
+    });
 }

@@ -2,6 +2,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useAppDispatch, useAppSelector } from "@/lib/hooks";
+import { addJoinedHub } from "@/lib/features/hubsSlice";
 import { assetUrl } from "@/lib/api";
 
 type Hub = {
@@ -23,10 +25,37 @@ type Pagination = {
 };
 
 export default function HubsPage() {
+    const user = useAppSelector((state) => state.user.data);
+    const joinedHubs = useAppSelector((state) => state.hubs.joined);
+    const dispatch = useAppDispatch();
+
     const [hubs, setHubs] = useState<Hub[]>([]);
     const [pagination, setPagination] = useState<Pagination | null>(null);
     const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(true);
+    const [joiningId, setJoiningId] = useState<number | null>(null);
+    const [locallyJoinedIds, setLocallyJoinedIds] = useState<number[]>([]);
+
+    const handleJoin = async (e: React.MouseEvent, hub: Hub) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        setJoiningId(hub.id);
+
+        try {
+            const response = await axios.post(`/api/hubs/${hub.slug}/join`);
+            dispatch(addJoinedHub(response.data.data));
+            setLocallyJoinedIds((ids) => [...ids, hub.id]);
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.response?.status === 409) {
+                setLocallyJoinedIds((ids) => [...ids, hub.id]);
+            } else {
+                console.error(error);
+            }
+        } finally {
+            setJoiningId(null);
+        }
+    };
 
     useEffect(() => {
         const fetchHubs = async () => {
@@ -66,33 +95,58 @@ export default function HubsPage() {
                 </div>
             ) : (
                 <ul className="space-y-3">
-                    {hubs.map((hub) => (
-                        <li key={hub.id}>
-                            <Link
-                                href={`/hub/${hub.slug}`}
-                                className="flex items-center gap-4 bg-overlay rounded-xl border border-white/5 px-5 py-4 hover:border-white/10 transition-colors"
-                            >
-                                <div className="h-11 w-11 rounded-full bg-surface overflow-hidden flex items-center justify-center shrink-0">
-                                    {hub.avatar ? (
-                                        <img src={assetUrl(hub.avatar)} alt={hub.name} className="h-full w-full object-cover" />
-                                    ) : (
-                                        <span className="text-sm font-bold text-ink">{hub.name.charAt(0).toUpperCase()}</span>
-                                    )}
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <div className="flex items-center justify-between gap-3">
-                                        <p className="font-medium truncate">{hub.name}</p>
-                                        <span className="shrink-0 text-xs px-2 py-0.5 rounded-full border border-white/10 text-fade capitalize">
-                                            {hub.privacy_type}
-                                        </span>
+                    {hubs.map((hub) => {
+                        const isOwner = user?.id === hub.owner_id;
+                        const isMember =
+                            isOwner ||
+                            joinedHubs.some((joined) => joined.id === hub.id) ||
+                            locallyJoinedIds.includes(hub.id);
+
+                        return (
+                            <li key={hub.id}>
+                                <Link
+                                    href={`/hub/${hub.slug}`}
+                                    className="flex items-center gap-4 bg-overlay rounded-xl border border-white/5 px-5 py-4 hover:border-white/10 transition-colors"
+                                >
+                                    <div className="h-11 w-11 rounded-full bg-surface overflow-hidden flex items-center justify-center shrink-0">
+                                        {hub.avatar ? (
+                                            <img src={assetUrl(hub.avatar)} alt={hub.name} className="h-full w-full object-cover" />
+                                        ) : (
+                                            <span className="text-sm font-bold text-ink">{hub.name.charAt(0).toUpperCase()}</span>
+                                        )}
                                     </div>
-                                    {hub.description && (
-                                        <p className="text-dim text-sm mt-1 line-clamp-2">{hub.description}</p>
+                                    <div className="min-w-0 flex-1">
+                                        <div className="flex items-center justify-between gap-3">
+                                            <p className="font-medium truncate">{hub.name}</p>
+                                            <span className="shrink-0 text-xs px-2 py-0.5 rounded-full border border-white/10 text-fade capitalize">
+                                                {hub.privacy_type}
+                                            </span>
+                                        </div>
+                                        {hub.description && (
+                                            <p className="text-dim text-sm mt-1 line-clamp-2">{hub.description}</p>
+                                        )}
+                                    </div>
+
+                                    {!isOwner && (
+                                        isMember ? (
+                                            <span className="shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-medium text-dim bg-white/5 border border-white/10">
+                                                Joined
+                                            </span>
+                                        ) : hub.privacy_type === 'public' ? (
+                                            <button
+                                                type="button"
+                                                onClick={(e) => handleJoin(e, hub)}
+                                                disabled={joiningId === hub.id}
+                                                className="shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-brand hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-overlay disabled:opacity-60 disabled:pointer-events-none transition-colors"
+                                            >
+                                                {joiningId === hub.id ? "Joining…" : "Join"}
+                                            </button>
+                                        ) : null
                                     )}
-                                </div>
-                            </Link>
-                        </li>
-                    ))}
+                                </Link>
+                            </li>
+                        );
+                    })}
                 </ul>
             )}
 

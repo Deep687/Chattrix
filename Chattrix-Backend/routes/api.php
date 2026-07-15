@@ -45,5 +45,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/hubs/me', [HubController::class, 'myHubs']);
 
+    Route::post('/hubs/{hub}/join', [HubController::class, 'join'])->name('hubs.join');
+    Route::get('/hubs/{hub}/members', [HubController::class, 'members'])->name('hubs.members');
+
     Route::apiResource('hubs', HubController::class);
 });
