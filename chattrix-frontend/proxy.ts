@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function proxy(request: NextRequest) {
+  if (request.nextUrl.pathname === '/') {
+    return NextResponse.next();
+  }
+
   const access_token = request.cookies.get('access_token');
   const refresh_token = request.cookies.get('refresh_token');
 

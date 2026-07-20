@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\LoginUserRequest;
+use App\Http\Requests\UpdateProfileRequest;
+use App\Actions\User\UpdateProfileAction;
 use App\Services\AuthService;
 use App\Services\TokenService;
 use App\Http\Resources\UserResource;
@@ -22,8 +24,13 @@ class AuthController extends Controller
     /**
      * @param AuthService $AuthService
      * @param TokenService $tokenService
+     * @param UpdateProfileAction $updateProfileAction
      */
-    public function __construct(private AuthService $AuthService, private TokenService $tokenService) {}
+    public function __construct(
+        private AuthService $AuthService,
+        private TokenService $tokenService,
+        private UpdateProfileAction $updateProfileAction
+    ) {}
 
     /**
      * Register a new user.
@@ -119,5 +126,24 @@ class AuthController extends Controller
         return $this->success([
             'user' => new UserResource($request->user()),
         ]);
+    }
+
+    /**
+     * Update the currently authenticated user's profile.
+     *
+     * @param UpdateProfileRequest $request
+     * @return JsonResponse
+     */
+    public function update(UpdateProfileRequest $request): JsonResponse
+    {
+        $user = $this->updateProfileAction->handle(
+            $request->user(),
+            $request->validated(),
+            $request->file('avatar')
+        );
+
+        return $this->success([
+            'user' => new UserResource($user),
+        ], 200, 'Profile updated successfully');
     }
 }
