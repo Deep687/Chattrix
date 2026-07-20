@@ -2,8 +2,11 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import axios from "axios";
-import { useAppSelector } from "@/lib/hooks";
-import { assetUrl } from "@/lib/api";
+import { useAppDispatch, useAppSelector } from "@/lib/hooks";
+import { addJoinedHub } from "@/lib/features/hubsSlice";
+import HubHeader from "./HubHeader";
+import HubInfoPanel from "./HubInfoPanel";
+import PostsFeed from "./PostsFeed";
 
 type Hub = {
     id: number;
@@ -19,10 +22,17 @@ type Hub = {
 export default function HubDetailPage() {
     const { slug } = useParams<{ slug: string }>();
     const user = useAppSelector((state) => state.user.data);
+    const joinedHubs = useAppSelector((state) => state.hubs.joined);
+    const dispatch = useAppDispatch();
 
     const [hub, setHub] = useState<Hub | null>(null);
     const [loading, setLoading] = useState(true);
     const [notFound, setNotFound] = useState(false);
+
+    const [joining, setJoining] = useState(false);
+    const [joinError, setJoinError] = useState("");
+    const [justJoined, setJustJoined] = useState(false);
+    const [infoOpen, setInfoOpen] = useState(false);
 
     useEffect(() => {
         const fetchHub = async () => {
@@ -47,7 +57,20 @@ export default function HubDetailPage() {
     }, [slug]);
 
     if (loading) {
-        return <p className="text-dim text-sm">Loading hub…</p>;
+        return (
+            <div className="space-y-6 animate-pulse">
+                <div className="bg-overlay rounded-xl border border-white/5 p-4">
+                    <div className="flex items-center gap-4">
+                        <div className="h-11 w-11 rounded-full bg-white/5 shrink-0" />
+                        <div className="flex-1 space-y-2">
+                            <div className="h-4 w-32 rounded bg-white/5" />
+                            <div className="h-3 w-16 rounded bg-white/5" />
+                        </div>
+                    </div>
+                </div>
+                <div className="bg-overlay rounded-xl border border-white/5 p-8 h-40" />
+            </div>
+        );
     }
 
     if (notFound || !hub) {
@@ -59,52 +82,51 @@ export default function HubDetailPage() {
         );
     }
 
-    const createdAt = new Date(hub.created_at).toLocaleDateString(undefined, {
-        month: 'long',
-        year: 'numeric',
-    });
+    const isOwner = user?.id === hub.owner_id;
+    const isMember = isOwner || joinedHubs.some((joined) => joined.id === hub.id) || justJoined;
+
+    const handleJoin = async () => {
+        setJoining(true);
+        setJoinError("");
+
+        try {
+            const response = await axios.post(`/api/hubs/${hub.slug}/join`);
+            dispatch(addJoinedHub(response.data.data));
+            setJustJoined(true);
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.response?.status === 403) {
+                setJoinError("This is a private hub. Only members can access it.");
+            } else if (axios.isAxiosError(error) && error.response?.status === 409) {
+                setJustJoined(true);
+            } else {
+                console.error(error);
+                setJoinError("Something went wrong while joining. Please try again.");
+            }
+        } finally {
+            setJoining(false);
+        }
+    };
 
     return (
         <div className="space-y-6">
-            <div className="bg-overlay rounded-xl border border-white/5 p-8">
-                <div className="flex items-start gap-5">
-                    <div className="h-16 w-16 rounded-full bg-surface ring-2 ring-white/5 overflow-hidden flex items-center justify-center shrink-0">
-                        {hub.avatar ? (
-                            <img
-                                src={assetUrl(hub.avatar)}
-                                alt={hub.name}
-                                className="h-full w-full object-cover"
-                            />
-                        ) : (
-                            <span className="text-xl font-bold text-ink">{hub.name.charAt(0).toUpperCase()}</span>
-                        )}
-                    </div>
+            <HubHeader
+                hub={hub}
+                isOwner={isOwner}
+                isMember={isMember}
+                joining={joining}
+                joinError={joinError}
+                onJoin={handleJoin}
+                onOpenInfo={() => setInfoOpen(true)}
+            />
 
-                    <div className="min-w-0 flex-1">
-                        <h1 className="text-2xl font-bold tracking-tight truncate">{hub.name}</h1>
-                        <p className="mt-0.5 text-dim text-sm">/h/{hub.slug}</p>
+            <PostsFeed slug={hub.slug} />
 
-                        <div className="mt-3 flex items-center gap-2 text-xs text-fade">
-                            <span className={`h-1.5 w-1.5 rounded-full ${hub.privacy_type === 'public' ? 'bg-green-500' : 'bg-fade'}`} />
-                            <span className="capitalize">{hub.privacy_type}</span>
-                            <span>·</span>
-                            <span>Created {createdAt}</span>
-                            {user?.id === hub.owner_id && (
-                                <>
-                                    <span>·</span>
-                                    <span className="text-brand font-medium">You own this hub</span>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {hub.description && (
-                    <p className="mt-6 pt-6 border-t border-white/5 text-sm text-dim leading-relaxed">
-                        {hub.description}
-                    </p>
-                )}
-            </div>
+            <HubInfoPanel
+                hub={hub}
+                isOwner={isOwner}
+                open={infoOpen}
+                onClose={() => setInfoOpen(false)}
+            />
         </div>
     );
 }
