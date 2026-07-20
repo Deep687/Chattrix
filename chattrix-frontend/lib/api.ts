@@ -9,6 +9,7 @@ export const API_ROUTES = {
         refresh:  `${BASE_URL}/api/auth/refresh`,
     },
     hubs: `${BASE_URL}/api/hubs`,
+    users: `${BASE_URL}/api/users`,
 }
 
 // Public storage assets (avatars, etc.) are served directly to the browser,
