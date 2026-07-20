@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HubController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -27,6 +28,7 @@ Route::prefix('auth')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/me', [AuthController::class, 'me'])->name('auth.me');
+        Route::put('/me', [AuthController::class, 'update'])->name('auth.update');
     });
 });
 
@@ -45,5 +47,19 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/hubs/me', [HubController::class, 'myHubs']);
 
+    Route::post('/hubs/{hub}/join', [HubController::class, 'join'])->name('hubs.join');
+    Route::get('/hubs/{hub}/members', [HubController::class, 'members'])->name('hubs.members');
+
     Route::apiResource('hubs', HubController::class);
+});
+
+/*
+    |--------------------------------------------------------------------------
+    | Users
+    |--------------------------------------------------------------------------
+    */
+
+Route::middleware('auth:sanctum')->group(function () {
+
+    Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
 });

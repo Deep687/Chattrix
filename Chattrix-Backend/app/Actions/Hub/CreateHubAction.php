@@ -8,9 +8,9 @@ use Illuminate\Http\UploadedFile;
 class CreateHubAction
 {
     /**
-     * @param array $data
-     * @param int $ownerId
-     * @param UploadedFile|null $avatar
+     * @param  array  $data
+     * @param  int  $ownerId
+     * @param  UploadedFile|null  $avatar
      * @return Hub
      */
     public function handle(array $data, int $ownerId, ?UploadedFile $avatar = null): Hub
@@ -19,6 +19,10 @@ class CreateHubAction
             $data['avatar'] = $avatar->store('avatars', 'public');
         }
 
-        return Hub::create(array_merge($data, ['owner_id' => $ownerId]));
+        $hub = Hub::create(array_merge($data, ['owner_id' => $ownerId]));
+
+        $hub->members()->attach($ownerId, ['joined_at' => now()]);
+
+        return $hub;
     }
 }

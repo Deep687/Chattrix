@@ -2,8 +2,8 @@
 
 namespace App\Policies;
 
-use App\Models\User;
 use App\Models\Hub;
+use App\Models\User;
 
 class HubPolicy
 {
@@ -25,6 +25,11 @@ class HubPolicy
     public function create(User $user): bool
     {
         return true;
+    }
+
+    public function join(User $user, Hub $hub): bool
+    {
+        return $hub->privacy_type === 'public';
     }
 
     public function update(User $user, Hub $hub): bool
