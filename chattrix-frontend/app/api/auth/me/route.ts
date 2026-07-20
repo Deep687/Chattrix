@@ -1,40 +1,22 @@
-import { cookies } from "next/headers";
 import { API_ROUTES } from "@/lib/api";
+import { proxyToBackend } from "@/lib/backendProxy";
+
 export async function GET() {
-    try {
-        const cookieStore = await cookies();
+    return proxyToBackend(API_ROUTES.auth.me, {
+        errorLabel: "Me Route",
+    });
+}
 
-        const accessToken =
-            cookieStore.get("access_token")?.value;
+export async function POST(request: Request) {
+    const formData = await request.formData();
 
-        if (!accessToken) {
-            return Response.json(
-                { message: "No access token found" },
-                { status: 401 }
-            );
-        }
+    // Laravel can't parse multipart bodies on PUT, so the update is spoofed
+    // via a POST with a `_method` field.
+    formData.set("_method", "PUT");
 
-        const backendRes = await fetch(
-            API_ROUTES.auth.me,
-            {
-                headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                    Accept: "application/json",
-                },
-            }
-        );
-
-        const data = await backendRes.json();
-
-        return Response.json(data, {
-            status: backendRes.status,
-        });
-    } catch (error) {
-        console.error("[Me Route]", error);
-
-        return Response.json(
-            { message: "Internal Server Error" },
-            { status: 500 }
-        );
-    }
+    return proxyToBackend(API_ROUTES.auth.me, {
+        method: "POST",
+        body: formData,
+        errorLabel: "Profile Update Route",
+    });
 }

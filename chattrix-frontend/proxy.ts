@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function proxy(request: NextRequest) {
+  if (request.nextUrl.pathname === '/') {
+    return NextResponse.next();
+  }
+
   const access_token = request.cookies.get('access_token');
   const refresh_token = request.cookies.get('refresh_token');
 
@@ -14,7 +18,7 @@ export async function proxy(request: NextRequest) {
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const timeoutId = setTimeout(() => controller.abort(), 5000); 
 
     const response = await fetch(`${process.env.BACKEND_URL}/api/auth/refresh`, {
       method: 'POST',
