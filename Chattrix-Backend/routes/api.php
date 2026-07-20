@@ -27,6 +27,7 @@ Route::prefix('auth')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/me', [AuthController::class, 'me'])->name('auth.me');
+        Route::put('/me', [AuthController::class, 'update'])->name('auth.update');
     });
 });
 

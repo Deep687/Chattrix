@@ -9,6 +9,7 @@ interface User {
   avatar: string;
   bio: string;
   role: string;
+  created_at: string;
 }
 
 // The slice state — user can be null when not logged in

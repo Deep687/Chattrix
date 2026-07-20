@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
 import { useAppSelector } from "@/lib/hooks";
 import { assetUrl } from "@/lib/api";
+import HubForm, { type HubFormValues, type HubFormErrors } from "@/components/hub/HubForm";
 
 type Hub = {
     id: number;
@@ -16,15 +17,6 @@ type Hub = {
     created_at: string;
 };
 
-type EditHubForm = {
-    name: string;
-    slug: string;
-    description: string;
-    privacy_type: 'public' | 'private';
-};
-
-type ErrorMessages = Partial<Record<keyof EditHubForm, string[]>>;
-
 export default function EditHubPage() {
     const { slug } = useParams<{ slug: string }>();
     const router = useRouter();
@@ -34,15 +26,16 @@ export default function EditHubPage() {
     const [loading, setLoading] = useState(true);
     const [notFound, setNotFound] = useState(false);
 
-    const [form, setForm] = useState<EditHubForm>({
+    const [form, setForm] = useState<HubFormValues>({
         name: '',
         slug: '',
         description: '',
         privacy_type: 'public',
     });
     const [avatar, setAvatar] = useState<File | null>(null);
+    const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
 
-    const [errors, setErrors] = useState<ErrorMessages>({});
+    const [errors, setErrors] = useState<HubFormErrors>({});
     const [successMessage, setSuccessMessage] = useState('');
     const [generalError, setGeneralError] = useState('');
     const [saving, setSaving] = useState(false);
@@ -62,6 +55,7 @@ export default function EditHubPage() {
                     description: data.description ?? '',
                     privacy_type: data.privacy_type,
                 });
+                setAvatarPreviewUrl(data.avatar ? assetUrl(data.avatar) : null);
             } catch (error) {
                 if (axios.isAxiosError(error) && error.response?.status === 404) {
                     setNotFound(true);
@@ -85,6 +79,7 @@ export default function EditHubPage() {
 
         if (file) {
             setAvatar(file);
+            setAvatarPreviewUrl(URL.createObjectURL(file));
         }
     };
 
@@ -125,7 +120,23 @@ export default function EditHubPage() {
     };
 
     if (loading) {
-        return <p className="text-dim text-sm">Loading hub…</p>;
+        return (
+            <div className="max-w-2xl mx-auto">
+                <div className="bg-overlay rounded-xl border border-white/5 p-8 space-y-7 animate-pulse">
+                    <div className="space-y-2">
+                        <div className="h-6 w-40 rounded bg-white/5" />
+                        <div className="h-3 w-56 rounded bg-white/5" />
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <div className="h-16 w-16 rounded-full bg-white/5 shrink-0" />
+                        <div className="h-3 w-32 rounded bg-white/5" />
+                    </div>
+                    <div className="h-10 rounded-lg bg-white/5" />
+                    <div className="h-10 rounded-lg bg-white/5" />
+                    <div className="h-24 rounded-lg bg-white/5" />
+                </div>
+            </div>
+        );
     }
 
     if (notFound || !hub) {
@@ -169,134 +180,17 @@ export default function EditHubPage() {
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-5">
-
-                    <div className="flex items-center gap-4">
-                        <div className="h-16 w-16 rounded-full bg-surface border border-white/10 overflow-hidden flex items-center justify-center text-fade text-xs shrink-0">
-                            {avatar ? (
-                                <img src={URL.createObjectURL(avatar)} alt={form.name} className="h-full w-full object-cover" />
-                            ) : hub.avatar ? (
-                                <img src={assetUrl(hub.avatar)} alt={form.name} className="h-full w-full object-cover" />
-                            ) : (
-                                'Logo'
-                            )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <label htmlFor="avatar" className="block text-xs font-medium text-dim mb-1.5">Hub icon</label>
-                            <input
-                                id="avatar"
-                                name="avatar"
-                                type="file"
-                                accept="image/*"
-                                onChange={handleAvatarChange}
-                                className="block w-full text-sm text-dim file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-surface file:text-ink hover:file:bg-white/10 file:cursor-pointer cursor-pointer"
-                            />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label htmlFor="name" className="block text-xs font-medium text-dim mb-1.5">Hub name</label>
-                        <input
-                            id="name"
-                            name="name"
-                            type="text"
-                            value={form.name}
-                            onChange={handleChange}
-                            required
-                            maxLength={255}
-                            placeholder="e.g. Frontend Developers"
-                            className="block w-full px-3 py-2.5 bg-surface border border-white/10 rounded-lg text-sm text-ink placeholder:text-fade focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-colors"
-                        />
-                        {errors.name && <p className="mt-1.5 text-xs text-red-400">{errors.name[0]}</p>}
-                    </div>
-
-                    <div>
-                        <label htmlFor="slug" className="block text-xs font-medium text-dim mb-1.5">Hub URL</label>
-                        <div className="flex items-center rounded-lg border border-white/10 bg-surface focus-within:ring-1 focus-within:ring-brand focus-within:border-brand transition-colors">
-                            <span className="pl-3 text-sm text-fade select-none">chattrix.com/h/</span>
-                            <input
-                                id="slug"
-                                name="slug"
-                                type="text"
-                                value={form.slug}
-                                onChange={handleChange}
-                                required
-                                maxLength={255}
-                                pattern="[a-z0-9-]+"
-                                placeholder="frontend-developers"
-                                className="block w-full px-1 py-2.5 pr-3 bg-transparent text-sm text-ink placeholder:text-fade focus:outline-none"
-                            />
-                        </div>
-                        <p className="mt-1.5 text-xs text-fade">Lowercase letters, numbers, and hyphens only.</p>
-                        {errors.slug && <p className="mt-1.5 text-xs text-red-400">{errors.slug[0]}</p>}
-                    </div>
-
-                    <div>
-                        <label htmlFor="description" className="block text-xs font-medium text-dim mb-1.5">Description</label>
-                        <textarea
-                            id="description"
-                            name="description"
-                            value={form.description}
-                            onChange={handleChange}
-                            rows={4}
-                            maxLength={5000}
-                            placeholder="What's this hub about?"
-                            className="block w-full px-3 py-2.5 bg-surface border border-white/10 rounded-lg text-sm text-ink placeholder:text-fade placeholder:leading-relaxed focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-colors resize-none"
-                        />
-                    </div>
-
-                    <div>
-                        <span className="block text-xs font-medium text-dim mb-1.5">Privacy</span>
-                        <div className="grid grid-cols-2 gap-3">
-                            <label className="flex items-start gap-2.5 p-3 rounded-lg border border-white/10 bg-surface cursor-pointer has-[:checked]:border-brand has-[:checked]:bg-brand/10 transition-colors">
-                                <input
-                                    type="radio"
-                                    name="privacy_type"
-                                    value="public"
-                                    checked={form.privacy_type === 'public'}
-                                    onChange={handleChange}
-                                    className="mt-0.5 accent-brand"
-                                />
-                                <span>
-                                    <span className="block text-sm font-medium text-ink">Public</span>
-                                    <span className="block text-xs text-fade">Anyone can view and join</span>
-                                </span>
-                            </label>
-                            <label className="flex items-start gap-2.5 p-3 rounded-lg border border-white/10 bg-surface cursor-pointer has-[:checked]:border-brand has-[:checked]:bg-brand/10 transition-colors">
-                                <input
-                                    type="radio"
-                                    name="privacy_type"
-                                    value="private"
-                                    checked={form.privacy_type === 'private'}
-                                    onChange={handleChange}
-                                    className="mt-0.5 accent-brand"
-                                />
-                                <span>
-                                    <span className="block text-sm font-medium text-ink">Private</span>
-                                    <span className="block text-xs text-fade">Only approved members can join</span>
-                                </span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center justify-end gap-3 pt-2">
-                        <button
-                            type="button"
-                            onClick={() => router.push(`/hub/${slug}`)}
-                            className="px-4 py-2.5 rounded-lg text-sm font-medium text-dim hover:text-ink hover:bg-white/5 transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={saving}
-                            className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-brand hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-overlay disabled:opacity-60 disabled:pointer-events-none transition-colors"
-                        >
-                            {saving ? "Saving…" : "Save changes"}
-                        </button>
-                    </div>
-
-                </form>
+                <HubForm
+                    mode="edit"
+                    values={form}
+                    avatarPreviewUrl={avatarPreviewUrl}
+                    errors={errors}
+                    submitting={saving}
+                    onChange={handleChange}
+                    onAvatarChange={handleAvatarChange}
+                    onSubmit={handleSubmit}
+                    onCancel={() => router.push(`/hub/${slug}`)}
+                />
 
             </div>
         </div>

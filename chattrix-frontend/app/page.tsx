@@ -6,7 +6,7 @@ import { useAppSelector } from "@/lib/hooks";
 const features = [
   {
     symbol: "⬡",
-    title: "Communities",
+    title: "Hubs",
     desc: "Join or create hubs around any topic — tech, gaming, art, local events, and more.",
   },
   {
@@ -38,7 +38,7 @@ export default function Home() {
           Find your people.<br className="hidden sm:block" /> Join the conversation.
         </h1>
         <p className="text-dim text-base sm:text-lg max-w-md mb-10 leading-relaxed">
-          Chattrix brings together communities around the topics that matter to you — share, discuss, and discover.
+          Chattrix brings together hubs around the topics that matter to you — share, discuss, and discover.
         </p>
 
         {user ? (
