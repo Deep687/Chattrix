@@ -6,9 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin \App\Models\Hub
+ * @mixin \App\Models\Workspace
  */
-class HubResource extends JsonResource
+class WorkspaceResource extends JsonResource
 {
     public function toArray(Request $request): array
     {

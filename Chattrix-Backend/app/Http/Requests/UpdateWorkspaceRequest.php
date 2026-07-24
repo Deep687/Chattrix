@@ -6,7 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
-class UpdateHubRequest extends FormRequest
+class UpdateWorkspaceRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -15,7 +15,7 @@ class UpdateHubRequest extends FormRequest
 
     public function rules(): array
     {
-        $hub = $this->route('hub');
+        $workspace = $this->route('workspace');
 
         return [
             'name' => 'sometimes|string|max:255',
@@ -26,7 +26,7 @@ class UpdateHubRequest extends FormRequest
                 'sometimes',
                 'string',
                 'max:255',
-                Rule::unique('hubs', 'slug')->ignore($hub->id),
+                Rule::unique('workspaces', 'slug')->ignore($workspace->id),
                 'regex:/^[a-z0-9-]+$/',
             ],
 

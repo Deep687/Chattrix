@@ -2,7 +2,7 @@
 
 namespace App\Enums;
 
-enum HubRole: string
+enum WorkspaceRole: string
 {
     case Owner = 'owner';
     case Member = 'member';
