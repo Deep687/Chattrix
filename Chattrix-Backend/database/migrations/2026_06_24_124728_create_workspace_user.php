@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('hub_user', function (Blueprint $table) {
+        Schema::create('workspace_user', function (Blueprint $table) {
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('hub_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('workspace_id')->constrained()->cascadeOnDelete();
 
-            $table->primary(['user_id', 'hub_id']);
+            $table->primary(['user_id', 'workspace_id']);
             $table->timestamp('joined_at')->useCurrent();
         });
     }
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('hub_user');
+        Schema::dropIfExists('workspace_user');
     }
 };

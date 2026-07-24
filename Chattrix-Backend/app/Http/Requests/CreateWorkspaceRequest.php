@@ -6,7 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
-class CreateHubRequest extends FormRequest
+class CreateWorkspaceRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -27,7 +27,7 @@ class CreateHubRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                'unique:hubs,slug',
+                'unique:workspaces,slug',
                 'regex:/^[a-z0-9-]+$/',
             ],
 

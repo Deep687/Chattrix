@@ -8,7 +8,6 @@ export const API_ROUTES = {
         me:       `${BASE_URL}/api/auth/me`,
         refresh:  `${BASE_URL}/api/auth/refresh`,
     },
-    hubs: `${BASE_URL}/api/hubs`,
     users: `${BASE_URL}/api/users`,
 }
 

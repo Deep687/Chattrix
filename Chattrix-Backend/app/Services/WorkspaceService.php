@@ -2,12 +2,12 @@
 
 namespace App\Services;
 
-use App\Models\Hub;
+use App\Models\Workspace;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-class HubService
+class WorkspaceService
 {
     /**
      * @param  int  $perPage
@@ -15,30 +15,30 @@ class HubService
      */
     public function paginate(int $perPage = 15): LengthAwarePaginator
     {
-        return Hub::paginate($perPage);
+        return Workspace::paginate($perPage);
     }
 
     /**
      * @param  User  $user
      * @return array{owned: Collection, joined: Collection}
      */
-    public function fetchMyHubs(User $user): array
+    public function fetchMyWorkspaces(User $user): array
     {
         return [
-            'owned' => $user->ownedHubs()->get(),
-            'joined' => $user->hubs()->get(),
+            'owned' => $user->ownedWorkspaces()->get(),
+            'joined' => $user->workspaces()->get(),
         ];
     }
 
     /**
-     * @param  Hub  $hub
+     * @param  Workspace  $workspace
      * @return Collection<int, User>
      */
-    public function fetchMembers(Hub $hub): Collection
+    public function fetchMembers(Workspace $workspace): Collection
     {
-        return $hub->members()
+        return $workspace->members()
             ->get()
-            ->each(fn (User $member) => $member->is_owner = $member->id === $hub->owner_id)
+            ->each(fn (User $member) => $member->is_owner = $member->id === $workspace->owner_id)
             ->sortByDesc('is_owner')
             ->values();
     }

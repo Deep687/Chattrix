@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class Hub extends Model
+class Workspace extends Model
 {
     protected $fillable = [
         'name',
@@ -29,7 +29,7 @@ class Hub extends Model
 
     public function members(): BelongsToMany
     {
-        return $this->belongsToMany(User::class)
+        return $this->belongsToMany(User::class, 'workspace_user')
             ->withPivot('joined_at');
     }
 }

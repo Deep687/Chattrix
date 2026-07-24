@@ -1,8 +1,8 @@
 <?php
 
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\HubController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\WorkspaceController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -39,18 +39,18 @@ Route::post('/auth/refresh', [AuthController::class, 'refresh'])
     ->name('auth.refresh')->middleware('SanctumRefresh');
 /*
     |--------------------------------------------------------------------------
-    | Hubs
+    | Workspaces
     |--------------------------------------------------------------------------
     */
 
 Route::middleware('auth:sanctum')->group(function () {
 
-    Route::get('/hubs/me', [HubController::class, 'myHubs']);
+    Route::get('/workspaces/me', [WorkspaceController::class, 'myWorkspaces']);
 
-    Route::post('/hubs/{hub}/join', [HubController::class, 'join'])->name('hubs.join');
-    Route::get('/hubs/{hub}/members', [HubController::class, 'members'])->name('hubs.members');
+    Route::post('/workspaces/{workspace}/join', [WorkspaceController::class, 'join'])->name('workspaces.join');
+    Route::get('/workspaces/{workspace}/members', [WorkspaceController::class, 'members'])->name('workspaces.members');
 
-    Route::apiResource('hubs', HubController::class);
+    Route::apiResource('workspaces', WorkspaceController::class);
 });
 
 /*
