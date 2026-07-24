@@ -2,8 +2,6 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAppSelector } from "@/lib/hooks";
-import { assetUrl } from "@/lib/api";
 
 const NAV_ITEMS = [
     {
@@ -14,15 +12,15 @@ const NAV_ITEMS = [
         ),
     },
     {
-        label: "All",
-        href: "/hubs",
+        label: "Profile",
+        href: "/profile",
         icon: (
-            <path fillRule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 5A.75.75 0 012.75 9h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 9.75zm0 5a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75z" clipRule="evenodd" />
+            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
         ),
     },
 ];
 
-function SidebarContent({ pathname, myHubs }: { pathname: string; myHubs: { id: number; slug: string; name: string; avatar: string | null }[] }) {
+function SidebarContent({ pathname }: { pathname: string }) {
     return (
         <aside className="flex flex-col gap-0.5">
             {NAV_ITEMS.map((item) => (
@@ -42,49 +40,9 @@ function SidebarContent({ pathname, myHubs }: { pathname: string; myHubs: { id: 
             ))}
 
             <div className="mt-4 pt-4 border-t border-white/5">
-                <div className="flex items-center justify-between px-3 mb-2">
-                    <p className="text-xs font-semibold text-fade uppercase tracking-wider">
-                        My Hubs
-                    </p>
-                    <Link
-                        href="/hub/create"
-                        title="Create a hub"
-                        aria-label="Create a hub"
-                        className="h-5 w-5 flex items-center justify-center rounded text-fade hover:text-brand hover:bg-brand/10 transition-colors"
-                    >
-                        <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path fillRule="evenodd" d="M10 3a.75.75 0 01.75.75v5.5h5.5a.75.75 0 010 1.5h-5.5v5.5a.75.75 0 01-1.5 0v-5.5h-5.5a.75.75 0 010-1.5h5.5v-5.5A.75.75 0 0110 3z" clipRule="evenodd" />
-                        </svg>
-                    </Link>
-                </div>
-                {myHubs.length > 0 ? (
-                    <div className="flex flex-col gap-0.5">
-                        {myHubs.map((hub) => (
-                            <Link
-                                key={hub.id}
-                                href={`/hub/${hub.slug}`}
-                                className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${pathname === `/hub/${hub.slug}`
-                                    ? "bg-brand/10 text-ink font-medium"
-                                    : "text-dim hover:bg-white/5 hover:text-ink"
-                                    }`}
-                            >
-                                <div className="h-6 w-6 rounded-full bg-surface ring-1 ring-white/5 overflow-hidden flex items-center justify-center shrink-0">
-                                    {hub.avatar ? (
-                                        <img src={assetUrl(hub.avatar)} alt="" className="h-full w-full object-cover" />
-                                    ) : (
-                                        <span className="text-[10px] font-bold text-ink">{hub.name.charAt(0).toUpperCase()}</span>
-                                    )}
-                                </div>
-                                <span className="truncate">{hub.name}</span>
-                            </Link>
-                        ))}
-                    </div>
-                ) : (
-                    <p className="px-3 text-xs text-fade leading-relaxed">
-                        None yet — <Link href="/hubs" className="text-dim hover:text-ink underline underline-offset-2">browse hubs</Link> or{" "}
-                        <Link href="/hub/create" className="text-dim hover:text-ink underline underline-offset-2">create one</Link>.
-                    </p>
-                )}
+                <p className="px-3 text-xs text-fade leading-relaxed">
+                    Workspaces are coming soon.
+                </p>
             </div>
         </aside>
     );
@@ -92,8 +50,6 @@ function SidebarContent({ pathname, myHubs }: { pathname: string; myHubs: { id: 
 
 export default function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean; onClose?: () => void }) {
     const pathname = usePathname();
-    const { owned, joined } = useAppSelector((state) => state.hubs);
-    const myHubs = [...owned, ...joined];
 
     useEffect(() => {
         if (!mobileOpen) return;
@@ -110,7 +66,7 @@ export default function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean;
         <>
             <div className="hidden md:block shrink-0 w-60">
                 <div className="sticky top-20 bg-overlay rounded-xl border border-white/5 p-3">
-                    <SidebarContent pathname={pathname} myHubs={myHubs} />
+                    <SidebarContent pathname={pathname} />
                 </div>
             </div>
 
@@ -141,7 +97,7 @@ export default function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean;
                     </div>
 
                     <div className="p-3">
-                        <SidebarContent pathname={pathname} myHubs={myHubs} />
+                        <SidebarContent pathname={pathname} />
                     </div>
                 </div>
             </div>
