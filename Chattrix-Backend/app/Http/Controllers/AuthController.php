@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Traits\ApiResponser;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Actions\User\UpdateProfileAction;
 use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\LoginUserRequest;
 use App\Http\Requests\UpdateProfileRequest;
-use App\Actions\User\UpdateProfileAction;
+use App\Http\Resources\UserResource;
 use App\Services\AuthService;
 use App\Services\TokenService;
-use App\Http\Resources\UserResource;
+use App\Traits\ApiResponser;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 /**
  * Handles authentication-related requests like registration, login, logout, and token refreshing.
@@ -22,12 +21,12 @@ class AuthController extends Controller
     use ApiResponser;
 
     /**
-     * @param AuthService $AuthService
-     * @param TokenService $tokenService
-     * @param UpdateProfileAction $updateProfileAction
+     * @param  AuthService  $authService
+     * @param  TokenService  $tokenService
+     * @param  UpdateProfileAction  $updateProfileAction
      */
     public function __construct(
-        private AuthService $AuthService,
+        private AuthService $authService,
         private TokenService $tokenService,
         private UpdateProfileAction $updateProfileAction
     ) {}
@@ -35,33 +34,33 @@ class AuthController extends Controller
     /**
      * Register a new user.
      *
-     * @param CreateUserRequest $request
+     * @param  CreateUserRequest  $request
      * @return JsonResponse
      */
     public function register(CreateUserRequest $request): JsonResponse
     {
         $validatedData = $request->validated();
 
-        $user = $this->AuthService->register($validatedData);
+        $user = $this->authService->register($validatedData);
 
         return $this->success([
-            'user' => new UserResource($user)
+            'user' => new UserResource($user),
         ], 201, 'User registered successfully');
     }
 
     /**
      * Authenticate a user and return tokens.
      *
-     * @param LoginUserRequest $request
+     * @param  LoginUserRequest  $request
      * @return JsonResponse
      */
     public function login(LoginUserRequest $request): JsonResponse
     {
         $validatedData = $request->validated();
 
-        $user =  $this->AuthService->AttemptLogin($validatedData);
+        $user = $this->authService->attemptLogin($validatedData);
 
-        if (!$user) {
+        if (! $user) {
             return $this->error(null, 401, 'Invalid credentials');
         }
 
@@ -69,56 +68,57 @@ class AuthController extends Controller
 
         return $this->success([
             'user' => new UserResource($user),
-            ...$tokens
+            ...$tokens,
         ], 200, 'User logged in successfully');
     }
 
     /**
      * Log out the authenticated user by invalidating their tokens.
      *
-     * @param Request $request
+     * @param  Request  $request
      * @return JsonResponse
      */
     public function logout(Request $request): JsonResponse
     {
 
-        $this->AuthService->AttemptLogout($request->bearerToken());
+        $this->authService->attemptLogout($request->bearerToken());
 
         return $this->success(null, 200, 'Logged out successfully');
     }
 
-
     /**
      * Refresh the authentication tokens for the currently authenticated user.
      *
-     * @param Request $request
+     * @param  Request  $request
      * @return JsonResponse
      */
     public function refresh(Request $request): JsonResponse
     {
-        // Assuming a `sanctumRefresh` middleware has already authenticated the user.
-        // If the middleware fails, it will return a 401, and this code will not be reached.
-        if (!Auth::check()) {
-            return $this->error(null, 401, 'Unauthenticated');
+        // The `SanctumRefresh` middleware has already resolved and authenticated the user, and
+        // returns a 401 itself when the refresh token is missing, unknown, revoked or expired.
+        $rotatedToken = $this->authService->invalidateTokensAfterRefresh($request);
+
+        if (! $rotatedToken) {
+            return $this->error(null, 401, 'Refresh token is no longer valid');
         }
 
-        $user = Auth::user();
-
-        // Invalidate the old refresh token and all old access tokens.
-        $this->AuthService->invalidateTokensAfterRefresh($request);
-
-        $tokens = $this->tokenService->generateToken($user);
+        // Carry the rotated token's chain origin forward so the absolute session lifetime keeps
+        // being measured from the original login rather than from this rotation.
+        $tokens = $this->tokenService->generateToken(
+            $request->user(),
+            $rotatedToken->session_started_at
+        );
 
         return $this->success([
-            'user' => new UserResource($user),
-            ...$tokens
+            'user' => new UserResource($request->user()),
+            ...$tokens,
         ], 200, 'Token refreshed successfully');
     }
 
     /**
      * Get the currently authenticated user.
      *
-     * @param Request $request
+     * @param  Request  $request
      * @return JsonResponse
      */
     public function me(Request $request): JsonResponse
@@ -131,7 +131,7 @@ class AuthController extends Controller
     /**
      * Update the currently authenticated user's profile.
      *
-     * @param UpdateProfileRequest $request
+     * @param  UpdateProfileRequest  $request
      * @return JsonResponse
      */
     public function update(UpdateProfileRequest $request): JsonResponse
