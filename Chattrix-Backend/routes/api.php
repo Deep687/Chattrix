@@ -36,7 +36,7 @@ Route::prefix('auth')->group(function () {
  * Token refresh auth
  */
 Route::post('/auth/refresh', [AuthController::class, 'refresh'])
-    ->name('auth.refresh')->middleware('SanctumRefresh');
+    ->name('auth.refresh')->middleware(['throttle:6,1', 'SanctumRefresh']);
 /*
     |--------------------------------------------------------------------------
     | Workspaces
