@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chattrix → Secure Multi-Tenant RAG Knowledge Base — Plan & Learning Guide</title>
+<style>
+  :root {
+    --bg: #F5F6FB;
+    --surface: #FFFFFF;
+    --surface-2: #EEF0F8;
+    --ink: #15171F;
+    --muted: #5A6076;
+    --faint: #878CA0;
+    --border: #E1E4F0;
+    --accent: #4356C9;
+    --accent-soft: #E7EAFA;
+    --tip: #9A5A12;
+    --tip-bg: #FBF1E2;
+    --tip-border: #EBD6B4;
+    --good: #2E7D57;
+    --code-bg: #F1F2F9;
+    --shadow: 0 1px 2px rgba(20,23,31,.04), 0 8px 24px rgba(20,23,31,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0E1016;
+      --surface: #161923;
+      --surface-2: #1D2130;
+      --ink: #ECEEF5;
+      --muted: #9AA1B6;
+      --faint: #737A90;
+      --border: #262B3A;
+      --accent: #8C98FF;
+      --accent-soft: #23283C;
+      --tip: #E1AC66;
+      --tip-bg: #241E13;
+      --tip-border: #3D3320;
+      --good: #5FBE8C;
+      --code-bg: #1B1F2C;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #F5F6FB; --surface: #FFFFFF; --surface-2: #EEF0F8; --ink: #15171F;
+    --muted: #5A6076; --faint: #878CA0; --border: #E1E4F0; --accent: #4356C9;
+    --accent-soft: #E7EAFA; --tip: #9A5A12; --tip-bg: #FBF1E2; --tip-border: #EBD6B4;
+    --good: #2E7D57; --code-bg: #F1F2F9; --shadow: 0 1px 2px rgba(20,23,31,.04), 0 8px 24px rgba(20,23,31,.05);
+  }
+  :root[data-theme="dark"] {
+    --bg: #0E1016; --surface: #161923; --surface-2: #1D2130; --ink: #ECEEF5;
+    --muted: #9AA1B6; --faint: #737A90; --border: #262B3A; --accent: #8C98FF;
+    --accent-soft: #23283C; --tip: #E1AC66; --tip-bg: #241E13; --tip-border: #3D3320;
+    --good: #5FBE8C; --code-bg: #1B1F2C; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 820px; margin: 0 auto; padding: 0 24px 96px; }
+
+  /* Typography */
+  .display { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; }
+  h1 { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+       font-size: clamp(2rem, 5vw, 3rem); line-height: 1.08; letter-spacing: -.01em;
+       text-wrap: balance; margin: 0 0 .4em; font-weight: 600; }
+  h2 { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+       font-size: clamp(1.4rem, 3vw, 1.9rem); line-height: 1.2; letter-spacing: -.005em;
+       text-wrap: balance; margin: 0 0 .5em; font-weight: 600; }
+  h3 { font-size: 1.12rem; margin: 1.6em 0 .4em; font-weight: 650; letter-spacing: -.005em; }
+  p { margin: 0 0 1em; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+  a:hover { border-bottom-color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+  strong { font-weight: 650; }
+  code { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+         font-size: .86em; background: var(--code-bg); padding: .12em .4em; border-radius: 5px;
+         border: 1px solid var(--border); }
+  .label { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .7rem;
+           letter-spacing: .14em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
+
+  /* Header */
+  header.hero { padding: 72px 0 44px; border-bottom: 1px solid var(--border); margin-bottom: 44px; }
+  .kicker { display: inline-flex; align-items: center; gap: .5em; margin-bottom: 20px;
+            font-family: ui-monospace, Menlo, monospace; font-size: .72rem; letter-spacing: .12em;
+            text-transform: uppercase; color: var(--accent); background: var(--accent-soft);
+            padding: 6px 12px; border-radius: 100px; font-weight: 600; }
+  .lede { font-size: 1.18rem; color: var(--muted); max-width: 62ch; margin-bottom: 28px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 10px; }
+  .meta .chip { font-size: .82rem; color: var(--muted); background: var(--surface);
+                border: 1px solid var(--border); padding: 6px 12px; border-radius: 8px; }
+  .meta .chip b { color: var(--ink); font-weight: 650; }
+
+  /* Sections */
+  section { margin-bottom: 52px; }
+  .sec-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 18px; }
+  .sec-num { font-family: ui-monospace, Menlo, monospace; font-size: .78rem; color: var(--accent);
+             font-weight: 700; padding-top: .35em; }
+  .sec-head h2 { margin: 0; }
+
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+          padding: 22px 24px; box-shadow: var(--shadow); }
+  .card + .card { margin-top: 16px; }
+
+  /* Tip / callout */
+  .tip { background: var(--tip-bg); border: 1px solid var(--tip-border); border-radius: 12px;
+         padding: 16px 18px; margin: 18px 0; font-size: .95rem; }
+  .tip .label { color: var(--tip); margin-bottom: 6px; display: block; }
+  .tip p:last-child { margin-bottom: 0; }
+
+  /* RAG flow diagram */
+  .flow { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; margin: 8px 0 6px; }
+  .flow .step { flex: 1 1 150px; background: var(--surface); border: 1px solid var(--border);
+                border-radius: 12px; padding: 16px; position: relative; }
+  .flow .step .n { font-family: ui-monospace, Menlo, monospace; font-size: .72rem; color: var(--accent);
+                   font-weight: 700; }
+  .flow .step h4 { margin: 4px 0 5px; font-size: 1rem; }
+  .flow .step p { margin: 0; font-size: .85rem; color: var(--muted); line-height: 1.5; }
+  .flow .arrow { align-self: center; color: var(--faint); font-size: 1.3rem; }
+  @media (max-width: 640px) { .flow .arrow { transform: rotate(90deg); align-self: center; width: 100%; text-align: center; } }
+
+  /* Step list (learning path / roadmap) */
+  ol.steps { list-style: none; counter-reset: s; padding: 0; margin: 0; }
+  ol.steps > li { counter-increment: s; position: relative; padding: 4px 0 22px 52px; }
+  ol.steps > li::before { content: counter(s); position: absolute; left: 0; top: 0;
+      width: 34px; height: 34px; border-radius: 50%; background: var(--accent-soft);
+      color: var(--accent); font-family: ui-monospace, Menlo, monospace; font-weight: 700;
+      font-size: .9rem; display: grid; place-items: center; border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); }
+  ol.steps > li:not(:last-child)::after { content: ""; position: absolute; left: 17px; top: 40px;
+      bottom: 4px; width: 1px; background: var(--border); }
+  ol.steps h3 { margin: 3px 0 4px; }
+  ol.steps p { margin: 0 0 8px; color: var(--muted); font-size: .95rem; }
+  .res { font-size: .86rem; }
+  .res .label { display: inline; margin-right: 8px; }
+
+  /* Table */
+  .table-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; min-width: 460px; }
+  th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--surface-2); font-weight: 650; font-size: .78rem; letter-spacing: .04em;
+       text-transform: uppercase; color: var(--muted); }
+  tr:last-child td { border-bottom: none; }
+  td b { font-weight: 650; }
+  .keep { color: var(--good); font-weight: 650; }
+
+  /* Milestones */
+  .ms { display: grid; gap: 14px; }
+  .ms .m { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: start;
+           background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+  .ms .m .tag { font-family: ui-monospace, Menlo, monospace; font-weight: 700; font-size: .8rem;
+                color: var(--accent); background: var(--accent-soft); padding: 5px 10px; border-radius: 8px; white-space: nowrap; }
+  .ms .m h3 { margin: 0 0 4px; }
+  .ms .m p { margin: 0; color: var(--muted); font-size: .92rem; }
+  .ms .m.goal { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+
+  /* Glossary */
+  dl.gloss { margin: 0; }
+  dl.gloss > div { padding: 14px 0; border-bottom: 1px solid var(--border); }
+  dl.gloss > div:last-child { border-bottom: none; }
+  dl.gloss dt { font-weight: 650; margin-bottom: 3px; }
+  dl.gloss dd { margin: 0; color: var(--muted); font-size: .95rem; }
+
+  ul.ticks { list-style: none; padding: 0; margin: 0; }
+  ul.ticks li { padding: 5px 0 5px 26px; position: relative; }
+  ul.ticks li::before { content: "→"; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+
+  footer { margin-top: 64px; padding-top: 28px; border-top: 1px solid var(--border); color: var(--faint); font-size: .88rem; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <span class="kicker">📚 Project Plan &amp; Learning Guide</span>
+    <h1>Chattrix — a Secure Multi-Tenant Internal Policy Assistant</h1>
+    <p class="lede">Reuse the hard part you already built — real multi-tenant authentication — and turn Chattrix into an AI assistant where each <em>company</em> uploads its own policy documents (HR handbook, IT &amp; security policy, leave &amp; benefits) and its employees ask plain-English questions answered from <em>their own company's</em> files, with retrieval that provably cannot leak to another company. This is your map: what RAG is, what to learn, and how to build something that stands out from every "chat with a PDF" clone.</p>
+    <div class="meta">
+      <span class="chip">Vertical: <b>internal policy / compliance</b></span>
+      <span class="chip">Reuses: <b>your auth + workspaces</b></span>
+      <span class="chip">Core build: <b>~1–2 weeks</b></span>
+      <span class="chip">Provider: <b>Gemini free tier</b></span>
+    </div>
+  </header>
+
+  <!-- 1 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">01</span><h2>What we're building</h2></div>
+    <p>An <strong>Internal Policy &amp; Compliance Assistant</strong>. Think of it as each company's private "ask-HR / ask-IT" bot, where a <strong>workspace = one company</strong>:</p>
+    <div class="card">
+      <ul class="ticks">
+        <li>A company is a <strong>workspace</strong> (your existing <em>hub</em>, already renamed). Employees join it.</li>
+        <li>Admins <strong>upload the company's policy docs</strong> — HR handbook, IT &amp; security policy, leave &amp; benefits, code of conduct.</li>
+        <li>Any employee <strong>asks in plain English</strong> — "How many casual leaves do I get?", "What's the WFH policy?"</li>
+        <li>The app answers from <em>only that company's documents</em>, <strong>cites the exact policy section</strong>, and says <em>"I don't know based on the provided documents"</em> when it isn't covered.</li>
+        <li>Each company's data is <strong>isolated in the query layer</strong> — Acme employees can never see Globex's policies, and a regression test proves it.</li>
+      </ul>
+    </div>
+    <div class="tip">
+      <span class="label">Why this beats the average "chat with a PDF"</span>
+      <p>The market is saturated with generic single-user PDF demos. Aiming the same engine at one real workflow — company policy Q&amp;A — makes it read as a <em>product</em>, and three things make it rare (exactly what interviewers probe): <strong>(1) secure multi-tenancy</strong> — one company's policies can't leak into another's answers, proven by a test; <strong>(2) measured quality</strong> — a golden-question eval harness so you can say "recall@5 went 0.62 → 0.89 after adding a reranker"; <strong>(3) production instrumentation</strong> — per-query token cost and latency. Clones have none of these.</p>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">02</span><h2>What is RAG? (in plain English)</h2></div>
+    <p>An LLM is smart but has two limits: it doesn't know <em>your</em> private documents, and it can "hallucinate" (make things up). <strong>RAG — Retrieval-Augmented Generation</strong> — fixes both by feeding the model the right pieces of your documents <em>before</em> it answers.</p>
+    <p>The analogy: instead of asking a brilliant friend to answer from memory, you first hand them the exact three pages that contain the answer, then ask. Here's the loop:</p>
+    <div class="flow">
+      <div class="step"><span class="n">STEP 1</span><h4>Ask</h4><p>User types a question in a workspace.</p></div>
+      <span class="arrow" aria-hidden="true">→</span>
+      <div class="step"><span class="n">STEP 2</span><h4>Retrieve</h4><p>Filter to that workspace, then find its most relevant chunks.</p></div>
+      <span class="arrow" aria-hidden="true">→</span>
+      <div class="step"><span class="n">STEP 3</span><h4>Augment</h4><p>Paste those chunks into the prompt as context.</p></div>
+      <span class="arrow" aria-hidden="true">→</span>
+      <div class="step"><span class="n">STEP 4</span><h4>Generate</h4><p>The model answers from that context, with citations.</p></div>
+    </div>
+    <p style="margin-top:18px">The clever part is <strong>Step 2</strong>. How do you find "relevant" chunks? You turn text into numbers (called <em>embeddings</em>) that capture meaning, then find the chunks whose numbers are "closest" to the question's numbers. The <strong>tenant filter comes first</strong> — you only ever search within the asking workspace's chunks. The glossary at the bottom explains every term.</p>
+  </section>
+
+  <!-- 2b: ingestion -->
+  <section>
+    <div class="sec-head"><span class="sec-num">02b</span><h2>The ingestion pipeline</h2></div>
+    <p>Before a question can be answered, each uploaded document travels through a fixed pipeline. Every chunk carries <strong>metadata</strong> (workspace, page, offsets) from the start — that's what makes tenant filtering and citations work, so it isn't optional.</p>
+    <div class="flow">
+      <div class="step"><span class="n">1</span><h4>Upload</h4><p>PDF / txt / md → <code>status: pending</code>.</p></div>
+      <span class="arrow" aria-hidden="true">→</span>
+      <div class="step"><span class="n">2</span><h4>Extract + clean</h4><p>Pull text, normalise whitespace, strip boilerplate.</p></div>
+      <span class="arrow" aria-hidden="true">→</span>
+      <div class="step"><span class="n">3</span><h4>Chunk</h4><p>~500 tokens, ~15% overlap, keep page/offset.</p></div>
+      <span class="arrow" aria-hidden="true">→</span>
+      <div class="step"><span class="n">4</span><h4>Embed + store</h4><p>Batch-embed, save vectors + metadata → <code>ready</code>.</p></div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">03</span><h2>What you'll learn (in order)</h2></div>
+    <p>Learn each idea <strong>right before you build the step that needs it</strong> — not all at once. Half a day each is plenty to start.</p>
+    <ol class="steps">
+      <li>
+        <h3>Embeddings — turning text into meaning-vectors</h3>
+        <p>The single most important concept. An embedding is a list of numbers representing a piece of text's meaning. Similar meaning → similar numbers.</p>
+        <p class="res"><span class="label">Read</span><a href="https://ai.google.dev/gemini-api/docs/embeddings" target="_blank" rel="noopener">Gemini — Embeddings docs</a> · <a href="https://www.pinecone.io/learn/vector-embeddings/" target="_blank" rel="noopener">Pinecone — Vector embeddings explained</a></p>
+      </li>
+      <li>
+        <h3>Chunking — splitting documents into pieces</h3>
+        <p>You can't embed a whole 40-page PDF as one blob. You split it into ~500-word "chunks" with a little overlap, and embed each chunk.</p>
+        <p class="res"><span class="label">Read</span><a href="https://www.pinecone.io/learn/chunking-strategies/" target="_blank" rel="noopener">Pinecone — Chunking strategies</a></p>
+      </li>
+      <li>
+        <h3>Retrieval &amp; similarity search</h3>
+        <p>Embed the question, then compare it to every chunk using <em>cosine similarity</em> and keep the top few (top-K). That's "retrieval."</p>
+        <p class="res"><span class="label">Read</span><a href="https://www.pinecone.io/learn/retrieval-augmented-generation/" target="_blank" rel="noopener">Pinecone — What is RAG</a></p>
+      </li>
+      <li>
+        <h3>Grounded generation + the prompt contract</h3>
+        <p>Put the retrieved chunks in the prompt and enforce four rules: <strong>answer only from this context</strong>, <strong>cite the source chunk</strong>, <strong>say "I don't know based on the provided documents"</strong> when the answer is absent, and <strong>don't speculate</strong>. Prompt design is a real part of RAG, not an afterthought.</p>
+        <p class="res"><span class="label">Read</span><a href="https://ai.google.dev/gemini-api/docs/text-generation" target="_blank" rel="noopener">Gemini — Text generation docs</a></p>
+      </li>
+      <li>
+        <h3>Laravel jobs &amp; queues (you'll use these)</h3>
+        <p>Embedding a document takes a few seconds, so it runs in the background as a queued Job. Your queue is already configured.</p>
+        <p class="res"><span class="label">Read</span><a href="https://laravel.com/docs/queues" target="_blank" rel="noopener">Laravel — Queues</a></p>
+      </li>
+      <li>
+        <h3>(Stage 2) Hybrid search &amp; reranking</h3>
+        <p>Combine vector similarity with keyword full-text search, then <em>rerank</em> the top-20 down to the best top-5 with a cross-encoder before generation. This is the single biggest quality lever after basic retrieval — and a measurable "before/after" interview story.</p>
+        <p class="res"><span class="label">Read</span><a href="https://www.pinecone.io/learn/refine-with-rerank/" target="_blank" rel="noopener">Pinecone — Reranking</a></p>
+      </li>
+      <li>
+        <h3>(Stage 2) Evaluation — with real metrics</h3>
+        <p>What separates a tutorial from a production RAG engineer. Build a golden dataset of question → expected-answer pairs and measure <strong>retrieval</strong> (precision@k, recall@k, MRR) and <strong>generation</strong> (groundedness/faithfulness via an LLM-as-judge, answer relevance). Track scores over time so each change shows a measurable delta.</p>
+        <p class="res"><span class="label">Read</span><a href="https://docs.ragas.io/" target="_blank" rel="noopener">Ragas — RAG evaluation</a></p>
+      </li>
+      <li>
+        <h3>(Stage 2) Observability &amp; cost</h3>
+        <p>Log per-query token counts, an estimated provider cost, and latency broken down by stage (embed / search / rerank / generate). Remember models have context limits — retrieval <em>quality</em> beats <em>quantity</em>, and more chunks isn't better.</p>
+      </li>
+    </ol>
+  </section>
+
+  <!-- 4 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">04</span><h2>The tech stack (and what's already done)</h2></div>
+    <p>You add only <strong>two external calls</strong> (embed + generate) and, to start, <strong>no new database</strong>. Everything else reuses Chattrix.</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Piece</th><th>Choice</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Backend</td><td>PHP 8.3 · Laravel 13 · Sanctum auth</td><td class="keep">Built ✓</td></tr>
+          <tr><td>Frontend</td><td>Next.js 16 · React 19 · Redux · Tailwind</td><td class="keep">Built ✓</td></tr>
+          <tr><td>Auth (rotation, BFF, cookies)</td><td>Your existing token system</td><td class="keep">Built ✓ — reused as-is</td></tr>
+          <tr><td>Workspaces + membership</td><td>Your existing hubs + <code>workspace_user</code></td><td class="keep">Built ✓ — renamed</td></tr>
+          <tr><td>Answer generation</td><td>Google Gemini <code>gemini-2.0-flash</code> — free tier</td><td>To add</td></tr>
+          <tr><td>Embeddings</td><td>Google Gemini <code>text-embedding-004</code> — free tier</td><td>To add</td></tr>
+          <tr><td>Vector storage — Stage&nbsp;1</td><td>PostgreSQL (embeddings as <code>jsonb</code>) + cosine in PHP</td><td>To add · zero new infra</td></tr>
+          <tr><td>Vector storage — Stage&nbsp;2</td><td>pgvector on the same Postgres (<code>CREATE EXTENSION vector</code>)</td><td>The upgrade · no engine migration</td></tr>
+          <tr><td>Quality — Stage&nbsp;2</td><td>Hybrid search + cross-encoder reranking + eval harness</td><td>The differentiator</td></tr>
+          <tr><td>Doc parsing</td><td><code>smalot/pdfparser</code> + plain text</td><td>To add</td></tr>
+          <tr><td>Background embedding</td><td>Laravel queue + <code>EmbedDocumentJob</code></td><td>Queue already wired ✓</td></tr>
+          <tr><td>AI service — Stage&nbsp;3</td><td>Python / FastAPI (LlamaIndex / LangGraph optional)</td><td>Career-evolution goal</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tip">
+      <span class="label">One free key — no money needed</span>
+      <p>You only need <strong>one Google Gemini API key</strong>, free from <a href="https://aistudio.google.com" target="_blank" rel="noopener">aistudio.google.com</a> (usually no credit card). It covers <em>both</em> embeddings and generation, and works for a deployed demo. The code is built <strong>provider-agnostic</strong>, so swapping to Claude or OpenAI later — once you have budget or a job — is a one-line config change.</p>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">05</span><h2>Implementation roadmap</h2></div>
+    <p>Six milestones across three stages. Milestones <strong>M1–M4 are the resume project</strong> (all in Laravel — ship these first); M5–M6 are the <em>career evolution</em> toward the in-demand Laravel&nbsp;+&nbsp;Next.js&nbsp;+&nbsp;Python profile. Ship each before starting the next.</p>
+    <div class="ms">
+      <div class="m">
+        <span class="tag">M1</span>
+        <div><h3>"It embeds" <span style="color:var(--faint);font-weight:600;font-size:.8rem">· Stage 1 · Laravel</span></h3><p>Upload a document to a workspace; it gets parsed, chunked (with page/offset metadata), embedded via Gemini, and stored. You can see the chunks + vectors + metadata in Postgres.</p></div>
+      </div>
+      <div class="m goal">
+        <span class="tag">M2 ★</span>
+        <div><h3>"It answers" — the demoable core <span style="color:var(--faint);font-weight:600;font-size:.8rem">· Stage 1 · Laravel</span></h3><p>Ask a question in a workspace and get a grounded answer from <em>that workspace's</em> documents, with citations and an honest "I don't know" when the answer isn't present. This is the moment worth demoing.</p></div>
+      </div>
+      <div class="m goal">
+        <span class="tag">M3 ★</span>
+        <div><h3>"It's isolated" — the differentiator gate <span style="color:var(--faint);font-weight:600;font-size:.8rem">· Stage 1 · Laravel</span></h3><p>A named, automated feature test: upload to two workspaces, ask cross-tenant, and assert workspace A never retrieves workspace B's chunks. This test is a bigger interview talking point than the whole pipeline.</p></div>
+      </div>
+      <div class="m goal">
+        <span class="tag">M4 ★</span>
+        <div><h3>Deploy + README <span style="color:var(--faint);font-weight:600;font-size:.8rem">· Stage 1 · resume-ready</span></h3><p>Live URL with demo credentials, and a README with the ingestion diagram and the auth ⟂ RAG isolation design. <strong>Stage 1 done — the project is resume-ready here.</strong></p></div>
+      </div>
+      <div class="m">
+        <span class="tag">M5</span>
+        <div><h3>pgvector + hybrid + rerank + evals + observability <span style="color:var(--faint);font-weight:600;font-size:.8rem">· Stage 2 · still Laravel</span></h3><p>Swap the in-PHP cosine search for pgvector on the same Postgres, add hybrid search + a cross-encoder reranker, measure the quality delta on a golden dataset, and log per-query cost/latency. The "measured quality" story — no new language yet.</p></div>
+      </div>
+      <div class="m">
+        <span class="tag">M6</span>
+        <div><h3>Python / FastAPI AI service <span style="color:var(--faint);font-weight:600;font-size:.8rem">· Stage 3 · adds Python</span></h3><p>Extract embeddings + retrieval + generation into a Python FastAPI service that Laravel calls (LlamaIndex / LangGraph optional). Completes the Next.js + Laravel + Python profile — reached by <em>evolving</em> a shipped project, not restarting.</p></div>
+      </div>
+    </div>
+    <div class="tip">
+      <span class="label">Why Laravel first, then Python?</span>
+      <p>The AI ecosystem is Python-first, and "Laravel + Next.js + Python for AI" is the strongest long-term profile. But you learn RAG <em>faster</em> in a language you already know, and shipping M1–M3 in Laravel guarantees a working demo before you add Python. <strong>Python is Stage 3 — an evolution of a live project, never a prerequisite.</strong></p>
+    </div>
+    <p style="margin-top:20px">The exact file-by-file conversion — plus the full Stage 2 &amp; Stage 3 breakdown — is in the companion file <code>migration.plan.md</code>.</p>
+  </section>
+
+  <!-- 6 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">06</span><h2>Glossary — every term, simply</h2></div>
+    <div class="card">
+      <dl class="gloss">
+        <div><dt>Embedding</dt><dd>A list of numbers that represents the <em>meaning</em> of a piece of text. Text with similar meaning gets similar numbers.</dd></div>
+        <div><dt>Vector</dt><dd>Just another word for that list of numbers. A <code>text-embedding-004</code> embedding is a vector of 768 numbers.</dd></div>
+        <div><dt>Chunk</dt><dd>A small slice of a document (say ~500 words). You embed chunks, not whole documents, so retrieval can pinpoint the relevant part.</dd></div>
+        <div><dt>Cosine similarity</dt><dd>A math formula (0 to 1) that measures how "close in meaning" two vectors are. Higher = more similar. This is how you find relevant chunks.</dd></div>
+        <div><dt>Top-K</dt><dd>The number of most-similar chunks you keep for the answer (e.g. top 4). "K" is just that number.</dd></div>
+        <div><dt>Retrieval</dt><dd>Step 2 of RAG: embedding the question and finding the top-K closest chunks.</dd></div>
+        <div><dt>Grounding</dt><dd>Making the model answer <em>only</em> from the provided chunks, instead of its own memory — so it doesn't make things up.</dd></div>
+        <div><dt>Reranking</dt><dd>A second-pass model (a cross-encoder) that re-scores the retrieved chunks for true relevance to the question, so the best few reach the LLM. Retrieve top-20, rerank to top-5.</dd></div>
+        <div><dt>Hybrid search</dt><dd>Combining vector similarity with keyword full-text search, then fusing the rankings — catches exact-term matches that embeddings alone miss.</dd></div>
+        <div><dt>Faithfulness / groundedness</dt><dd>An eval metric: is every claim in the answer actually supported by a retrieved chunk? Often scored by an LLM-as-judge.</dd></div>
+        <div><dt>Multi-tenancy</dt><dd>Keeping each workspace's data separate and private. Your auth + policies already do this — RAG must respect it by filtering on <code>workspace_id</code> <em>before</em> similarity search.</dd></div>
+        <div><dt>Vector database</dt><dd>A database built to store vectors and find nearest ones fast (e.g. pgvector, Qdrant). You start with plain Postgres and upgrade to pgvector on the same database later.</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">07</span><h2>The resume payoff — stories this produces</h2></div>
+    <p>Build toward the narrative deliberately. Each milestone hands you a concrete, measurable interview answer:</p>
+    <div class="card">
+      <ul class="ticks">
+        <li><strong>Isolation:</strong> "Built workspace-scoped retrieval with a regression test proving zero cross-tenant leakage, enforced in the query layer and via policy."</li>
+        <li><strong>Quality:</strong> "Added hybrid search + cross-encoder reranking; measured recall@5 and faithfulness on a golden dataset and improved retrieval quality by X%."</li>
+        <li><strong>Cost/reliability:</strong> "Instrumented per-query token cost and latency across the embed → search → rerank → generate stages."</li>
+        <li><strong>Evolution:</strong> "Shipped RAG in Laravel, then extracted the AI layer into a FastAPI microservice the Laravel gateway calls."</li>
+      </ul>
+      <p style="margin:14px 0 0"><span class="label" style="display:block;margin-bottom:6px">Resume line</span>Next.js · Laravel · Python/FastAPI · PostgreSQL/pgvector · RAG (hybrid retrieval, reranking, LLM-as-judge eval) · multi-tenant auth · queues · Docker.</p>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">08</span><h2>Your next move</h2></div>
+    <div class="card">
+      <p style="margin-bottom:10px">Nothing to build yet — just three small unblocks, then M1 begins:</p>
+      <ul class="ticks">
+        <li>Get one free <strong>Google Gemini API key</strong> at <a href="https://aistudio.google.com" target="_blank" rel="noopener">aistudio.google.com</a> — it covers both embeddings and generation.</li>
+        <li>Skim learning items <strong>1–3</strong> above (embeddings, chunking, retrieval) — about half a day.</li>
+        <li>Pick the <strong>15–20 golden questions</strong> (with expected answers) that will seed your eval set — choose documents you know well.</li>
+        <li>Read <code>migration.plan.md</code> so you can see exactly which Chattrix files change.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <p>Companion file: <code>migration.plan.md</code> · Reuses your existing authentication, workspaces, and membership · Built on Laravel 13 + Next.js 16 · Provider: Google Gemini free tier.</p>
+  </footer>
+
+</div>
+</body>
+</html>

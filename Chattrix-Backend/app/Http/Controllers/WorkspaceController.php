@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Actions\Workspace\CreateWorkspaceAction;
 use App\Actions\Workspace\DeleteWorkspaceAction;
-use App\Actions\Workspace\JoinWorkspaceAction;
 use App\Actions\Workspace\UpdateWorkspaceAction;
 use App\Http\Requests\CreateWorkspaceRequest;
 use App\Http\Requests\UpdateWorkspaceRequest;
@@ -26,18 +25,20 @@ class WorkspaceController extends Controller
      * @param  CreateWorkspaceAction  $createWorkspaceAction
      * @param  UpdateWorkspaceAction  $updateWorkspaceAction
      * @param  DeleteWorkspaceAction  $deleteWorkspaceAction
-     * @param  JoinWorkspaceAction  $joinWorkspaceAction
      */
     public function __construct(
         private WorkspaceService $workspaceService,
         private CreateWorkspaceAction $createWorkspaceAction,
         private UpdateWorkspaceAction $updateWorkspaceAction,
         private DeleteWorkspaceAction $deleteWorkspaceAction,
-        private JoinWorkspaceAction $joinWorkspaceAction,
     ) {}
 
     /**
-     * List all workspaces with pagination.
+     * List the workspaces the authenticated user belongs to.
+     *
+     * Scoped to the caller's memberships rather than paginating every workspace on the
+     * platform: workspaces are private, so a tenant-wide index would leak the existence
+     * of other companies even without exposing their contents.
      *
      * @return JsonResponse
      */
@@ -45,17 +46,9 @@ class WorkspaceController extends Controller
     {
         $this->authorize('viewAny', Workspace::class);
 
-        $workspaces = $this->workspaceService->paginate();
+        $workspaces = $this->workspaceService->fetchMyWorkspaces(Auth::user());
 
-        return $this->success([
-            'workspaces' => WorkspaceResource::collection($workspaces),
-            'pagination' => [
-                'total' => $workspaces->total(),
-                'per_page' => $workspaces->perPage(),
-                'current_page' => $workspaces->currentPage(),
-                'last_page' => $workspaces->lastPage(),
-            ],
-        ], 200, 'Workspaces fetched successfully');
+        return $this->success(WorkspaceResource::collection($workspaces), 200, 'Workspaces fetched successfully');
     }
 
     /**
@@ -126,25 +119,6 @@ class WorkspaceController extends Controller
     }
 
     /**
-     * Join a public workspace.
-     *
-     * @param  Workspace  $workspace
-     * @return JsonResponse
-     */
-    public function join(Workspace $workspace): JsonResponse
-    {
-        $this->authorize('join', $workspace);
-
-        $joined = $this->joinWorkspaceAction->handle($workspace, Auth::user());
-
-        if (! $joined) {
-            return $this->error(null, 409, 'You are already a member of this workspace');
-        }
-
-        return $this->success(new WorkspaceResource($workspace), 200, 'Joined workspace successfully');
-    }
-
-    /**
      * List a workspace's members.
      *
      * @param  Workspace  $workspace
@@ -157,19 +131,5 @@ class WorkspaceController extends Controller
         $members = $this->workspaceService->fetchMembers($workspace);
 
         return $this->success(WorkspaceMemberResource::collection($members), 200, 'Members fetched successfully');
-    }
-
-    /**
-     * Get user's workspaces
-     *
-     * @return JsonResponse
-     */
-    public function myWorkspaces(): JsonResponse
-    {
-        $this->authorize('viewAny', Workspace::class);
-
-        $workspaces = $this->workspaceService->fetchMyWorkspaces(Auth::user());
-
-        return $this->success($workspaces, 200, 'Workspaces fetched successfully');
     }
 }

@@ -45,11 +45,10 @@ Route::post('/auth/refresh', [AuthController::class, 'refresh'])
 
 Route::middleware('auth:sanctum')->group(function () {
 
-    Route::get('/workspaces/me', [WorkspaceController::class, 'myWorkspaces']);
-
-    Route::post('/workspaces/{workspace}/join', [WorkspaceController::class, 'join'])->name('workspaces.join');
     Route::get('/workspaces/{workspace}/members', [WorkspaceController::class, 'members'])->name('workspaces.members');
 
+    // `index` returns only the caller's own workspaces. There is no self-serve join route:
+    // workspaces are private and membership comes from an authorised invite.
     Route::apiResource('workspaces', WorkspaceController::class);
 });
 
