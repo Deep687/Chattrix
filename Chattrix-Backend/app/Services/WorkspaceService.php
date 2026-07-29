@@ -2,32 +2,31 @@
 
 namespace App\Services;
 
-use App\Models\Workspace;
 use App\Models\User;
+use App\Models\Workspace;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 class WorkspaceService
 {
     /**
-     * @param  int  $perPage
-     * @return LengthAwarePaginator
-     */
-    public function paginate(int $perPage = 15): LengthAwarePaginator
-    {
-        return Workspace::paginate($perPage);
-    }
-
-    /**
+     * Fetch every workspace the user belongs to.
+     *
+     * Read from the `workspace_user` pivot only, which is the single source of truth for
+     * access. Owned workspaces are not a separate bucket: the creator is enrolled as a pivot
+     * member with the `owner` role, so splitting owned from joined would return each owned
+     * workspace twice. The role travels on the pivot for callers that need to distinguish them.
+     *
+     * There is deliberately no method that lists every workspace: with private-only tenancy
+     * a platform-wide listing would disclose which companies exist on the instance.
+     *
      * @param  User  $user
-     * @return array{owned: Collection, joined: Collection}
+     * @return Collection<int, Workspace>
      */
-    public function fetchMyWorkspaces(User $user): array
+    public function fetchMyWorkspaces(User $user): Collection
     {
-        return [
-            'owned' => $user->ownedWorkspaces()->get(),
-            'joined' => $user->workspaces()->get(),
-        ];
+        return $user->workspaces()
+            ->orderBy('name')
+            ->get();
     }
 
     /**

@@ -4,7 +4,6 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
 
 class CreateWorkspaceRequest extends FormRequest
 {
@@ -23,17 +22,7 @@ class CreateWorkspaceRequest extends FormRequest
 
             'description' => 'nullable|string|max:5000',
 
-            'slug' => [
-                'required',
-                'string',
-                'max:255',
-                'unique:workspaces,slug',
-                'regex:/^[a-z0-9-]+$/',
-            ],
-
             'avatar' => 'nullable|image|max:2048',
-
-            'privacy_type' => ['required', Rule::in(['public', 'private'])],
         ];
     }
 }

@@ -35,4 +35,24 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Google Gemini
+    |--------------------------------------------------------------------------
+    |
+    | Powers both embedding and generation for the policy assistant. A single
+    | free-tier key from https://aistudio.google.com covers both models. The
+    | embedding dimension is declared here because the pgvector column width
+    | must match it exactly, so a model change is also a migration.
+    |
+    */
+
+    'gemini' => [
+        'key' => env('GEMINI_API_KEY'),
+        'base_url' => env('GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com/v1beta'),
+        'chat_model' => env('GEMINI_CHAT_MODEL', 'gemini-2.0-flash'),
+        'embed_model' => env('GEMINI_EMBED_MODEL', 'text-embedding-004'),
+        'embed_dimensions' => (int) env('GEMINI_EMBED_DIMENSIONS', 768),
+    ],
+
 ];

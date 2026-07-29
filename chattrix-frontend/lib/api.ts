@@ -9,6 +9,15 @@ export const API_ROUTES = {
         refresh:  `${BASE_URL}/api/auth/refresh`,
     },
     users: `${BASE_URL}/api/users`,
+
+    // `base` serves both the scoped listing (GET) and creation (POST) — same URL, the method
+    // is what differs. The per-workspace URLs take the numeric id, since workspaces have no
+    // slug: they are private, so there is nothing to make a readable URL for.
+    workspaces: {
+        base:    `${BASE_URL}/api/workspaces`,
+        show:    (id: string | number) => `${BASE_URL}/api/workspaces/${id}`,
+        members: (id: string | number) => `${BASE_URL}/api/workspaces/${id}/members`,
+    },
 }
 
 // Public storage assets (avatars, etc.) are served directly to the browser,
