@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkspaceController;
+use App\Http\Controllers\WorkspaceInvitationController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -47,8 +48,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/workspaces/{workspace}/members', [WorkspaceController::class, 'members'])->name('workspaces.members');
 
-    // `index` returns only the caller's own workspaces. There is no self-serve join route:
-    // workspaces are private and membership comes from an authorised invite.
+    Route::post('/workspaces/{workspace}/invitations', [WorkspaceInvitationController::class, 'store'])
+        ->name('workspaces.invitations.store');
+
     Route::apiResource('workspaces', WorkspaceController::class);
 });
 

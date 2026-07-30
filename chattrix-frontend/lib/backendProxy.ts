@@ -43,6 +43,8 @@ export async function proxyToBackend(
 
         const data = await response.json();
 
+        console.log(data);
+
         return Response.json(data, { status: response.status });
     } catch (error) {
         console.error(`[${errorLabel}]`, error);

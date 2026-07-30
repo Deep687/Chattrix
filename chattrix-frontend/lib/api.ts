@@ -17,6 +17,7 @@ export const API_ROUTES = {
         base:    `${BASE_URL}/api/workspaces`,
         show:    (id: string | number) => `${BASE_URL}/api/workspaces/${id}`,
         members: (id: string | number) => `${BASE_URL}/api/workspaces/${id}/members`,
+        invitations: (id: string | number) => `${BASE_URL}/api/workspaces/${id}/invitations`,
     },
 }
 
