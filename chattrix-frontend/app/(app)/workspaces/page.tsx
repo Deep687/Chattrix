@@ -1,7 +1,9 @@
-import { API_ROUTES, assetUrl } from "@/lib/api";
+import { API_ROUTES } from "@/lib/api";
 import { fetchFromBackend } from "@/lib/serverFetch";
 import type { ApiResponse, Workspace } from "@/lib/types";
+import WorkspaceAvatar from "@/components/WorkspaceAvatar";
 import CreateWorkspaceDialog from "./CreateWorkspaceDialog";
+import Link from "next/link";
 
 /**
  * Lists the workspaces the signed-in user belongs to.
@@ -47,7 +49,7 @@ export default async function WorkspacesPage() {
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {workspaces.map((workspace) => (
-                        <WorkspaceCard key={workspace.id} workspace={workspace} />
+                        <WorkspaceCard key={workspace.id} workspace={workspace}  />
                     ))}
                 </div>
             )}
@@ -57,28 +59,14 @@ export default async function WorkspacesPage() {
 
 function WorkspaceCard({ workspace }: { workspace: Workspace }) {
     return (
-        <div className="bg-overlay rounded-xl border border-white/5 p-6">
+        <Link href={`/workspaces/${workspace.id}`} className="bg-overlay rounded-xl border border-white/5 p-6">
             <div className="flex items-start gap-4">
-                {workspace.avatar ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                        src={assetUrl(workspace.avatar)}
-                        alt=""
-                        className="size-11 rounded-lg object-cover border border-white/10 shrink-0"
-                    />
-                ) : (
-                    <div
-                        aria-hidden="true"
-                        className="size-11 rounded-lg bg-surface border border-white/10 grid place-items-center text-brand shrink-0"
-                    >
-                        ⬡
-                    </div>
-                )}
+                <WorkspaceAvatar avatar={workspace.avatar} />
 
                 <div className="min-w-0">
                     <div className="flex items-center gap-2">
                         <h3 className="text-sm font-semibold truncate">{workspace.name}</h3>
-                        {workspace.role === 'owner' && (
+                        {workspace.is_owner && (
                             <span className="shrink-0 text-[0.65rem] font-semibold uppercase tracking-wider text-brand bg-brand/10 border border-brand/25 rounded px-1.5 py-0.5">
                                 Owner
                             </span>
@@ -90,6 +78,6 @@ function WorkspaceCard({ workspace }: { workspace: Workspace }) {
                     </p>
                 </div>
             </div>
-        </div>
+        </Link>
     );
 }

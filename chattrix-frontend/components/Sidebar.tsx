@@ -2,6 +2,8 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import WorkspaceAvatar from "./WorkspaceAvatar";
+import type { Workspace } from "@/lib/types";
 
 const NAV_ITEMS = [
     {
@@ -28,7 +30,13 @@ const NAV_ITEMS = [
     }
 ];
 
-function SidebarContent({ pathname }: { pathname: string }) {
+type SidebarContentProps = {
+    pathname: string;
+    workspaces: Workspace[];
+    onNavigate?: () => void;
+};
+
+function SidebarContent({ pathname, workspaces, onNavigate }: SidebarContentProps) {
     return (
         <aside className="flex flex-col gap-0.5">
             {NAV_ITEMS.map((item) => (
@@ -47,16 +55,45 @@ function SidebarContent({ pathname }: { pathname: string }) {
                 </Link>
             ))}
 
-            <div className="mt-4 pt-4 border-t border-white/5">
-                <p className="px-3 text-xs text-fade leading-relaxed">
-                    Workspaces are coming soon.
+            <div className="mt-4 pt-4 border-t border-white/5 flex flex-col gap-0.5">
+                <p className="px-3 pb-1 text-[0.7rem] font-semibold uppercase tracking-wider text-fade">
+                    Your workspaces
                 </p>
+
+                {workspaces.length === 0 ? (
+                    <p className="px-3 text-xs text-fade leading-relaxed">
+                        No workspaces yet.
+                    </p>
+                ) : (
+                    workspaces.map((workspace) => (
+                        <Link
+                            key={workspace.id}
+                            href={`/workspaces/${workspace.id}`}
+                            onClick={onNavigate}
+                            title={workspace.name}
+                            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
+                                pathname === `/workspaces/${workspace.id}`
+                                    ? "bg-brand/10 text-ink font-medium"
+                                    : "text-dim hover:bg-white/5 hover:text-ink"
+                            }`}
+                        >
+                            <WorkspaceAvatar avatar={workspace.avatar} size="sm" />
+                            <span className="truncate">{workspace.name}</span>
+                        </Link>
+                    ))
+                )}
             </div>
         </aside>
     );
 }
 
-export default function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean; onClose?: () => void }) {
+type SidebarProps = {
+    workspaces: Workspace[];
+    mobileOpen?: boolean;
+    onClose?: () => void;
+};
+
+export default function Sidebar({ workspaces, mobileOpen, onClose }: SidebarProps) {
     const pathname = usePathname();
 
     useEffect(() => {
@@ -74,7 +111,7 @@ export default function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean;
         <>
             <div className="hidden md:block shrink-0 w-60">
                 <div className="sticky top-20 bg-overlay rounded-xl border border-white/5 p-3">
-                    <SidebarContent pathname={pathname} />
+                    <SidebarContent pathname={pathname} workspaces={workspaces} />
                 </div>
             </div>
 
@@ -104,8 +141,14 @@ export default function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean;
                         </button>
                     </div>
 
+                    {/* `onNavigate` closes the drawer on tap: the mobile overlay does not unmount
+                        on navigation, so without it the new page renders behind the open drawer. */}
                     <div className="p-3">
-                        <SidebarContent pathname={pathname} />
+                        <SidebarContent
+                            pathname={pathname}
+                            workspaces={workspaces}
+                            onNavigate={onClose}
+                        />
                     </div>
                 </div>
             </div>
