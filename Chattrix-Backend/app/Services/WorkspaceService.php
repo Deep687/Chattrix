@@ -14,7 +14,7 @@ class WorkspaceService
      * Read from the `workspace_user` pivot only, which is the single source of truth for
      * access. Owned workspaces are not a separate bucket: the creator is enrolled as a pivot
      * member with the `owner` role, so splitting owned from joined would return each owned
-     * workspace twice. The role travels on the pivot for callers that need to distinguish them.
+     * workspace twice. Callers that need to distinguish them compare `owner_id`.
      *
      * There is deliberately no method that lists every workspace: with private-only tenancy
      * a platform-wide listing would disclose which companies exist on the instance.

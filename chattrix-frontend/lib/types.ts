@@ -6,11 +6,11 @@ export type Workspace = {
     avatar: string | null;
     owner_id: number;
     /**
-     * The caller's tenant role. Optional because the backend uses `whenPivotLoaded`, so it is
-     * present on the listing (loaded through the membership pivot) and absent on a freshly
-     * created workspace. An absent key is honest; a guessed default would not be.
+     * Whether the caller owns this workspace. Derived server-side from `owner_id`, so it is
+     * always present — unlike the pivot role it replaced, which was absent on any workspace
+     * not fetched through the membership relation.
      */
-    role?: string;
+    is_owner: boolean;
     created_at: string;
 };
 
@@ -20,3 +20,14 @@ export type ApiResponse<T> = {
     statusCode: number;
     message: string;
 };
+
+/** Mirrors `App\Http\Resources\WorkspaceMemberResource`. */
+export type WorkspaceMember = {
+    id: number;
+    name: string;
+    email: string;
+    is_owner: boolean;
+    /** Pivot column `workspace_user.joined_at`, serialised as an ISO timestamp. */
+    joined_at: string;
+};
+

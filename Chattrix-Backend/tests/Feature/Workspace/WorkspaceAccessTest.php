@@ -73,7 +73,7 @@ class WorkspaceAccessTest extends TestCase
         $this->assertNotContains($foreign->name, $names, "Another tenant's workspace leaked into the listing.");
     }
 
-    public function test_the_listing_returns_each_workspace_once_with_its_role(): void
+    public function test_the_listing_returns_each_workspace_once_flagging_the_owned_one(): void
     {
         $user = User::factory()->create();
         $owned = Workspace::factory()->ownedBy($user)->create();
@@ -87,14 +87,8 @@ class WorkspaceAccessTest extends TestCase
         // as separate buckets would return the owned workspace twice.
         $this->assertCount(2, $rows, 'The listing returned duplicates.');
 
-        $this->assertSame(
-            WorkspaceRole::Owner->value,
-            $rows->firstWhere('id', $owned->id)['role']
-        );
-        $this->assertSame(
-            WorkspaceRole::Member->value,
-            $rows->firstWhere('id', $joined->id)['role']
-        );
+        $this->assertTrue($rows->firstWhere('id', $owned->id)['is_owner']);
+        $this->assertFalse($rows->firstWhere('id', $joined->id)['is_owner']);
     }
 
     public function test_only_the_owner_can_update_a_workspace(): void

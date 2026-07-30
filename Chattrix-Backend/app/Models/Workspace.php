@@ -14,6 +14,11 @@ class Workspace extends Model
     /** @use HasFactory<WorkspaceFactory> */
     use HasFactory;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
     protected $fillable = [
         'name',
         'description',
@@ -21,11 +26,23 @@ class Workspace extends Model
         'owner_id',
     ];
 
+    /**
+     * Get the owner of the workspace.
+     *
+     * @return BelongsTo<User, Workspace>
+     */
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'owner_id');
     }
 
+    /**
+     * Get all members belonging to the workspace.
+     *
+     * The pivot table stores each member's role and the date they joined.
+     *
+     * @return BelongsToMany<User, Workspace>
+     */
     public function members(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'workspace_user')
@@ -33,10 +50,12 @@ class Workspace extends Model
     }
 
     /**
-     * Determine whether the user is inside this workspace.
+     * Determine whether the given user belongs to this workspace.
      *
-     * Membership is the whole access rule — there is no public or discoverable state — so
-     * this is the check every workspace ability and every document query resolves to.
+     * Membership is the primary access control mechanism for workspaces.
+     *
+     * @param  User  $user  The user to check for membership.
+     * @return bool True if the user is a member of the workspace; otherwise, false.
      */
     public function hasMember(User $user): bool
     {
@@ -46,7 +65,12 @@ class Workspace extends Model
     }
 
     /**
-     * Determine whether the user holds the given tenant role in this workspace.
+     * Determine whether the given user belongs to this workspace
+     * with the specified role.
+     *
+     * @param  User  $user  The user whose membership is being checked.
+     * @param  WorkspaceRole  $role  The required workspace role.
+     * @return bool True if the user has the specified role; otherwise, false.
      */
     public function hasMemberWithRole(User $user, WorkspaceRole $role): bool
     {
