@@ -6,18 +6,18 @@ import { useAppSelector } from "@/lib/hooks";
 const features = [
   {
     symbol: "⬡",
-    title: "Hubs",
-    desc: "Join or create hubs around any topic — tech, gaming, art, local events, and more.",
+    title: "Workspaces",
+    desc: "Create a private workspace for your team and invite members.",
   },
   {
     symbol: "◎",
-    title: "Conversations",
-    desc: "Post, comment, and upvote. Real discussions with people who actually care.",
+    title: "Your documents",
+    desc: "Upload PDFs, notes, and files — organized per workspace.",
   },
   {
     symbol: "✦",
-    title: "AI Insights",
-    desc: "Smart summaries, semantic search, and moderation assistance — coming soon.",
+    title: "Ask anything",
+    desc: "Get answers grounded in your own documents, with citations.",
   },
 ];
 
@@ -35,10 +35,10 @@ export default function Home() {
           Early access
         </div>
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-5 max-w-2xl leading-tight">
-          Find your people.<br className="hidden sm:block" /> Join the conversation.
+          Your team&apos;s knowledge,<br className="hidden sm:block" /> instantly answerable.
         </h1>
         <p className="text-dim text-base sm:text-lg max-w-md mb-10 leading-relaxed">
-          Chattrix brings together hubs around the topics that matter to you — share, discuss, and discover.
+          Chattrix turns your team&apos;s documents into a private knowledge base you can ask questions in plain English.
         </p>
 
         {user ? (
@@ -46,7 +46,7 @@ export default function Home() {
             href="/dashboard"
             className="bg-red-600 hover:bg-red-500 text-white px-8 py-2.5 rounded-lg text-sm font-semibold transition-colors"
           >
-            Go to your feed →
+            Go to dashboard →
           </Link>
         ) : (
           <Link

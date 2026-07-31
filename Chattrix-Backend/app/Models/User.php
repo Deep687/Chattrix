@@ -39,14 +39,14 @@ class User extends Authenticatable
         return $this->role === UserRole::SuperAdmin;
     }
 
-    public function ownedHubs(): HasMany
+    public function ownedWorkspaces(): HasMany
     {
-        return $this->hasMany(Hub::class, 'owner_id');
+        return $this->hasMany(Workspace::class, 'owner_id');
     }
 
-    public function hubs(): BelongsToMany
+    public function workspaces(): BelongsToMany
     {
-        return $this->belongsToMany(Hub::class)
-            ->withPivot('joined_at');
+        return $this->belongsToMany(Workspace::class, 'workspace_user')
+            ->withPivot(['role', 'joined_at']);
     }
 }
