@@ -8,9 +8,10 @@ import { useRouter } from "next/navigation";
 /**
  * The invite-member trigger and modal.
  *
- * TEMPLATE ONLY — `handleFormSubmit` does not call the API yet. The endpoint
- * (`POST /workspaces/{workspace}/invitations`) does not exist; wire it up, mirroring
- * `CreateWorkspaceDialog`: post through a BFF route, map 422 into `errors`, then `router.refresh()`.
+ * Posts through the BFF route at `/api/workspaces/{id}/invitations`, which forwards to Laravel
+ * with the caller's access-token cookie. 422 responses land in `errors`; anything else becomes a
+ * single generic message, since the backend deliberately does not reveal whether the address
+ * already has an account.
  *
  * Email is the only field. An invitation is keyed by address rather than user id because the
  * invitee may not have an account yet, so there is nothing else to identify them by.
@@ -30,7 +31,7 @@ export default function InviteMemberDialog({ workspace }: InviteMemberDialogProp
     }
 
     const [inviteForm, setInviteForm] = useState<InviteFormType>({
-        email: " "
+        email: ""
     });
     const [errors, setErrors] = useState<{ email?: string[] }>({});
     const [submitError, setSubmitError] = useState('');
@@ -96,7 +97,7 @@ export default function InviteMemberDialog({ workspace }: InviteMemberDialogProp
                                 </h2>
                                 <p className="mt-2 text-dim text-sm">
                                     They&apos;ll get an email with a link to join this workspace. The
-                                    link works only for this address and expires in 7 days.
+                                    link works only for this address and expires in 12 hours.
                                 </p>
                             </div>
                             <button
