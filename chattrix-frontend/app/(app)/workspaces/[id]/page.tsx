@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { API_ROUTES } from "@/lib/api";
 import { fetchFromBackend } from "@/lib/serverFetch";
-import type { ApiResponse, Workspace, WorkspaceMember } from "@/lib/types";
+import type { ApiResponse, Workspace, WorkspaceInvitation, WorkspaceMember } from "@/lib/types";
 import MembersPanel from "./MembersPanel";
 import WorkspaceHeader from "./WorkspaceHeader";
 
@@ -32,8 +32,9 @@ export async function generateMetadata({ params }: PageProps) {
  * hopping through the BFF routes in `app/api/` — those exist for the browser, which cannot read an
  * httpOnly cookie. This code already has that access.
  *
- * The two requests are independent, so they go out together. Awaiting them in sequence would
- * double time-to-first-byte for no reason.
+ * The three requests are independent, so they go out together. Invitations are fetched even for
+ * non-owners — ownership is only known once the workspace lands, and branching on it would
+ * serialise the requests. They get a 403, which becomes `null`.
  *
  * `fetchFromBackend` returns `null` for 404, 403 and a missing token alike, so the workspace being
  * `null` becomes a 404 here. That deliberately conflates "does not exist" with "not yours": in a
@@ -42,9 +43,10 @@ export async function generateMetadata({ params }: PageProps) {
 export default async function WorkspacePage({ params }: PageProps) {
     const { id } = await params;
 
-    const [workspaceRes, membersRes] = await Promise.all([
+    const [workspaceRes, membersRes, invitationsRes] = await Promise.all([
         fetchFromBackend<ApiResponse<Workspace>>(API_ROUTES.workspaces.show(id)),
         fetchFromBackend<ApiResponse<WorkspaceMember[]>>(API_ROUTES.workspaces.members(id)),
+        fetchFromBackend<ApiResponse<WorkspaceInvitation[]>>(API_ROUTES.workspaces.invitations(id)),
     ]);
 
     if (!workspaceRes) {
@@ -54,6 +56,8 @@ export default async function WorkspacePage({ params }: PageProps) {
     const workspace = workspaceRes.data;
     // Kept nullable on purpose: the panel distinguishes "failed to load" from "none".
     const members = membersRes?.data ?? null;
+    // Unlike members, empty is the normal case here, so a failure collapses to it.
+    const invitations = invitationsRes?.data ?? [];
 
     return (
         // Main column first in the DOM, rail second. That is also the visual order, so no CSS
@@ -86,7 +90,12 @@ export default async function WorkspacePage({ params }: PageProps) {
             </div>
 
             <aside className="w-full lg:w-70 lg:shrink-0">
-                <MembersPanel members={members} canInvite={workspace.is_owner} workspace={workspace} />
+                <MembersPanel
+                    members={members}
+                    invitations={invitations}
+                    canInvite={workspace.is_owner}
+                    workspace={workspace}
+                />
             </aside>
         </div>
     );

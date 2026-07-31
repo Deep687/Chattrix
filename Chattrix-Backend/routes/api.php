@@ -48,6 +48,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/workspaces/{workspace}/members', [WorkspaceController::class, 'members'])->name('workspaces.members');
 
+    Route::get('/workspaces/{workspace}/invitations', [WorkspaceInvitationController::class, 'index'])
+        ->name('workspaces.invitations.index');
+
     Route::post('/workspaces/{workspace}/invitations', [WorkspaceInvitationController::class, 'store'])
         ->name('workspaces.invitations.store');
 

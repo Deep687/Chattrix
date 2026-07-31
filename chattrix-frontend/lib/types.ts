@@ -21,6 +21,15 @@ export type ApiResponse<T> = {
     message: string;
 };
 
+/** Mirrors `App\Http\Resources\WorkspaceInvitationResource`. No token field, by design. */
+export type WorkspaceInvitation = {
+    id: number;
+    workspace_id: number;
+    email: string;
+    /** ISO timestamp. Expired rows are still returned — the backend filters on acceptance only. */
+    expires_at: string;
+};
+
 /** Mirrors `App\Http\Resources\WorkspaceMemberResource`. */
 export type WorkspaceMember = {
     id: number;
