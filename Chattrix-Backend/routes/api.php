@@ -1,8 +1,9 @@
 <?php
 
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\HubController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\WorkspaceController;
+use App\Http\Controllers\WorkspaceInvitationController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -36,21 +37,24 @@ Route::prefix('auth')->group(function () {
  * Token refresh auth
  */
 Route::post('/auth/refresh', [AuthController::class, 'refresh'])
-    ->name('auth.refresh')->middleware('SanctumRefresh');
+    ->name('auth.refresh')->middleware(['throttle:6,1', 'SanctumRefresh']);
 /*
     |--------------------------------------------------------------------------
-    | Hubs
+    | Workspaces
     |--------------------------------------------------------------------------
     */
 
 Route::middleware('auth:sanctum')->group(function () {
 
-    Route::get('/hubs/me', [HubController::class, 'myHubs']);
+    Route::get('/workspaces/{workspace}/members', [WorkspaceController::class, 'members'])->name('workspaces.members');
 
-    Route::post('/hubs/{hub}/join', [HubController::class, 'join'])->name('hubs.join');
-    Route::get('/hubs/{hub}/members', [HubController::class, 'members'])->name('hubs.members');
+    Route::get('/workspaces/{workspace}/invitations', [WorkspaceInvitationController::class, 'index'])
+        ->name('workspaces.invitations.index');
 
-    Route::apiResource('hubs', HubController::class);
+    Route::post('/workspaces/{workspace}/invitations', [WorkspaceInvitationController::class, 'store'])
+        ->name('workspaces.invitations.store');
+
+    Route::apiResource('workspaces', WorkspaceController::class);
 });
 
 /*
