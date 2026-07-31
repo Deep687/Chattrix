@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chattrix — What the App Is &amp; How Every Role Works</title>
+<style>
+  :root {
+    --bg: #F5F6FB;
+    --surface: #FFFFFF;
+    --surface-2: #EEF0F8;
+    --ink: #15171F;
+    --muted: #5A6076;
+    --faint: #878CA0;
+    --border: #E1E4F0;
+    --accent: #4356C9;
+    --accent-soft: #E7EAFA;
+    --tip: #9A5A12;
+    --tip-bg: #FBF1E2;
+    --tip-border: #EBD6B4;
+    --good: #2E7D57;
+    --code-bg: #F1F2F9;
+    --shadow: 0 1px 2px rgba(20,23,31,.04), 0 8px 24px rgba(20,23,31,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0E1016;
+      --surface: #161923;
+      --surface-2: #1D2130;
+      --ink: #ECEEF5;
+      --muted: #9AA1B6;
+      --faint: #737A90;
+      --border: #262B3A;
+      --accent: #8C98FF;
+      --accent-soft: #23283C;
+      --tip: #E1AC66;
+      --tip-bg: #241E13;
+      --tip-border: #3D3320;
+      --good: #5FBE8C;
+      --code-bg: #1B1F2C;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #F5F6FB; --surface: #FFFFFF; --surface-2: #EEF0F8; --ink: #15171F;
+    --muted: #5A6076; --faint: #878CA0; --border: #E1E4F0; --accent: #4356C9;
+    --accent-soft: #E7EAFA; --tip: #9A5A12; --tip-bg: #FBF1E2; --tip-border: #EBD6B4;
+    --good: #2E7D57; --code-bg: #F1F2F9; --shadow: 0 1px 2px rgba(20,23,31,.04), 0 8px 24px rgba(20,23,31,.05);
+  }
+  :root[data-theme="dark"] {
+    --bg: #0E1016; --surface: #161923; --surface-2: #1D2130; --ink: #ECEEF5;
+    --muted: #9AA1B6; --faint: #737A90; --border: #262B3A; --accent: #8C98FF;
+    --accent-soft: #23283C; --tip: #E1AC66; --tip-bg: #241E13; --tip-border: #3D3320;
+    --good: #5FBE8C; --code-bg: #1B1F2C; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 820px; margin: 0 auto; padding: 0 24px 96px; }
+
+  /* Typography */
+  .display { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; }
+  h1 { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+       font-size: clamp(2rem, 5vw, 3rem); line-height: 1.08; letter-spacing: -.01em;
+       text-wrap: balance; margin: 0 0 .4em; font-weight: 600; }
+  h2 { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+       font-size: clamp(1.4rem, 3vw, 1.9rem); line-height: 1.2; letter-spacing: -.005em;
+       text-wrap: balance; margin: 0 0 .5em; font-weight: 600; }
+  h3 { font-size: 1.12rem; margin: 1.6em 0 .4em; font-weight: 650; letter-spacing: -.005em; }
+  p { margin: 0 0 1em; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+  a:hover { border-bottom-color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+  strong { font-weight: 650; }
+  code { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+         font-size: .86em; background: var(--code-bg); padding: .12em .4em; border-radius: 5px;
+         border: 1px solid var(--border); }
+  .label { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .7rem;
+           letter-spacing: .14em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
+
+  /* Header */
+  header.hero { padding: 72px 0 44px; border-bottom: 1px solid var(--border); margin-bottom: 44px; }
+  .kicker { display: inline-flex; align-items: center; gap: .5em; margin-bottom: 20px;
+            font-family: ui-monospace, Menlo, monospace; font-size: .72rem; letter-spacing: .12em;
+            text-transform: uppercase; color: var(--accent); background: var(--accent-soft);
+            padding: 6px 12px; border-radius: 100px; font-weight: 600; }
+  .lede { font-size: 1.18rem; color: var(--muted); max-width: 62ch; margin-bottom: 28px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 10px; }
+  .meta .chip { font-size: .82rem; color: var(--muted); background: var(--surface);
+                border: 1px solid var(--border); padding: 6px 12px; border-radius: 8px; }
+  .meta .chip b { color: var(--ink); font-weight: 650; }
+
+  /* Sections */
+  section { margin-bottom: 52px; }
+  .sec-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 18px; }
+  .sec-num { font-family: ui-monospace, Menlo, monospace; font-size: .78rem; color: var(--accent);
+             font-weight: 700; padding-top: .35em; }
+  .sec-head h2 { margin: 0; }
+
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+          padding: 22px 24px; box-shadow: var(--shadow); }
+  .card + .card { margin-top: 16px; }
+
+  /* Tip / callout */
+  .tip { background: var(--tip-bg); border: 1px solid var(--tip-border); border-radius: 12px;
+         padding: 16px 18px; margin: 18px 0; font-size: .95rem; }
+  .tip .label { color: var(--tip); margin-bottom: 6px; display: block; }
+  .tip p:last-child { margin-bottom: 0; }
+
+  /* RAG flow diagram */
+  .flow { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; margin: 8px 0 6px; }
+  .flow .step { flex: 1 1 150px; background: var(--surface); border: 1px solid var(--border);
+                border-radius: 12px; padding: 16px; position: relative; }
+  .flow .step .n { font-family: ui-monospace, Menlo, monospace; font-size: .72rem; color: var(--accent);
+                   font-weight: 700; }
+  .flow .step h4 { margin: 4px 0 5px; font-size: 1rem; }
+  .flow .step p { margin: 0; font-size: .85rem; color: var(--muted); line-height: 1.5; }
+  .flow .arrow { align-self: center; color: var(--faint); font-size: 1.3rem; }
+  @media (max-width: 640px) { .flow .arrow { transform: rotate(90deg); align-self: center; width: 100%; text-align: center; } }
+
+  /* Step list (learning path / roadmap) */
+  ol.steps { list-style: none; counter-reset: s; padding: 0; margin: 0; }
+  ol.steps > li { counter-increment: s; position: relative; padding: 4px 0 22px 52px; }
+  ol.steps > li::before { content: counter(s); position: absolute; left: 0; top: 0;
+      width: 34px; height: 34px; border-radius: 50%; background: var(--accent-soft);
+      color: var(--accent); font-family: ui-monospace, Menlo, monospace; font-weight: 700;
+      font-size: .9rem; display: grid; place-items: center; border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); }
+  ol.steps > li:not(:last-child)::after { content: ""; position: absolute; left: 17px; top: 40px;
+      bottom: 4px; width: 1px; background: var(--border); }
+  ol.steps h3 { margin: 3px 0 4px; }
+  ol.steps p { margin: 0 0 8px; color: var(--muted); font-size: .95rem; }
+  .res { font-size: .86rem; }
+  .res .label { display: inline; margin-right: 8px; }
+
+  /* Table */
+  .table-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; min-width: 460px; }
+  th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--surface-2); font-weight: 650; font-size: .78rem; letter-spacing: .04em;
+       text-transform: uppercase; color: var(--muted); }
+  tr:last-child td { border-bottom: none; }
+  td b { font-weight: 650; }
+  .keep { color: var(--good); font-weight: 650; }
+
+  /* Milestones */
+  .ms { display: grid; gap: 14px; }
+  .ms .m { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: start;
+           background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+  .ms .m .tag { font-family: ui-monospace, Menlo, monospace; font-weight: 700; font-size: .8rem;
+                color: var(--accent); background: var(--accent-soft); padding: 5px 10px; border-radius: 8px; white-space: nowrap; }
+  .ms .m h3 { margin: 0 0 4px; }
+  .ms .m p { margin: 0; color: var(--muted); font-size: .92rem; }
+  .ms .m.goal { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+
+  /* Glossary */
+  dl.gloss { margin: 0; }
+  dl.gloss > div { padding: 14px 0; border-bottom: 1px solid var(--border); }
+  dl.gloss > div:last-child { border-bottom: none; }
+  dl.gloss dt { font-weight: 650; margin-bottom: 3px; }
+  dl.gloss dd { margin: 0; color: var(--muted); font-size: .95rem; }
+
+  ul.ticks { list-style: none; padding: 0; margin: 0; }
+  ul.ticks li { padding: 5px 0 5px 26px; position: relative; }
+  ul.ticks li::before { content: "→"; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+
+  footer { margin-top: 64px; padding-top: 28px; border-top: 1px solid var(--border); color: var(--faint); font-size: .88rem; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<style>
+  /* additions specific to this doc */
+  .axes { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .role { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; box-shadow: var(--shadow); }
+  .role h3 { margin: 0 0 2px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .role .badge { font-family: ui-monospace, Menlo, monospace; font-size: .68rem; letter-spacing: .1em;
+                 text-transform: uppercase; font-weight: 700; padding: 3px 8px; border-radius: 6px;
+                 background: var(--accent-soft); color: var(--accent); }
+  .role .badge.warn { background: var(--tip-bg); color: var(--tip); border: 1px solid var(--tip-border); }
+  .role > p:first-of-type { color: var(--muted); font-size: .9rem; margin-bottom: 12px; }
+  .can, .cant { list-style: none; padding: 0; margin: 0 0 10px; font-size: .92rem; }
+  .can li, .cant li { padding: 3px 0 3px 24px; position: relative; }
+  .can li::before { content: "✓"; position: absolute; left: 0; color: var(--good); font-weight: 700; }
+  .cant li::before { content: "✗"; position: absolute; left: 2px; color: #C0504A; font-weight: 700; }
+  @media (prefers-color-scheme: dark) { .cant li::before { color: #E0796F; } }
+  .yes { color: var(--good); font-weight: 700; }
+  .no  { color: var(--faint); font-weight: 700; }
+  td.c, th.c { text-align: center; }
+  .journey { list-style: none; counter-reset: j; padding: 0; margin: 0; }
+  .journey > li { counter-increment: j; position: relative; padding: 2px 0 18px 46px; }
+  .journey > li::before { content: counter(j); position: absolute; left: 0; top: 0; width: 30px; height: 30px;
+      border-radius: 50%; background: var(--surface-2); color: var(--muted); font-family: ui-monospace, Menlo, monospace;
+      font-weight: 700; font-size: .82rem; display: grid; place-items: center; border: 1px solid var(--border); }
+  .journey > li:not(:last-child)::after { content: ""; position: absolute; left: 15px; top: 36px; bottom: 2px; width: 1px; background: var(--border); }
+  .journey p { margin: 0; font-size: .95rem; }
+  .journey b { font-weight: 650; }
+  .gap { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--tip);
+         border-radius: 10px; padding: 16px 18px; margin-bottom: 14px; }
+  .gap h3 { margin: 0 0 6px; font-size: 1rem; }
+  .gap p { margin: 0 0 8px; font-size: .93rem; }
+  .gap p:last-child { margin-bottom: 0; }
+  .gap .fix { font-size: .9rem; color: var(--muted); }
+  .gap .fix b { color: var(--ink); }
+  .gap.done { border-left-color: var(--good); }
+  .gap.done h3 .badge { font-family: ui-monospace, Menlo, monospace; font-size: .62rem; letter-spacing: .1em;
+      text-transform: uppercase; font-weight: 700; padding: 2px 7px; border-radius: 5px; margin-left: 6px;
+      color: var(--good); border: 1px solid color-mix(in srgb, var(--good) 40%, transparent);
+      background: color-mix(in srgb, var(--good) 10%, transparent); vertical-align: 2px; }
+  .layer { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: start;
+           background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+  .layer + .layer { margin-top: 14px; }
+  .layer .tag { font-family: ui-monospace, Menlo, monospace; font-weight: 700; font-size: .78rem;
+                color: var(--accent); background: var(--accent-soft); padding: 5px 10px; border-radius: 8px; white-space: nowrap; }
+  .layer h3 { margin: 0 0 4px; }
+  .layer p { margin: 0; font-size: .93rem; color: var(--muted); }
+  .layer p code { color: var(--ink); }
+</style>
+<div class="wrap">
+
+  <header class="hero">
+    <span class="kicker">🔐 Product &amp; Access Model</span>
+    <h1>What Chattrix Is, and How Every Role Works</h1>
+    <p class="lede">A companion to <code>migration.plan.md</code> and <code>plan.html</code>, written for one purpose: to state exactly what the product does, and exactly what each kind of user can and cannot do — including the boundary that makes the whole project interesting, which is that <em>platform administrators cannot read tenant documents</em>.</p>
+    <div class="meta">
+      <span class="chip">Tenancy unit: <b>workspace = one company</b></span>
+      <span class="chip">Role axes: <b>2, independent</b></span>
+      <span class="chip">Enforcement: <b>policy + query layer</b></span>
+      <span class="chip">Ships in MVP: <b>Owner / Member only</b></span>
+    </div>
+  </header>
+
+  <!-- 1 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">01</span><h2>What the app is about</h2></div>
+    <p><strong>Chattrix is an internal policy &amp; compliance assistant.</strong> A company uploads its own internal documents — HR handbook, IT &amp; security policy, leave &amp; benefits, code of conduct — and its employees ask plain-English questions, receiving answers that are <em>grounded</em>: every claim comes from the uploaded documents, each answer carries citations pointing back to the exact source passage, and when the answer genuinely isn't in the docs the app says <em>"I don't know based on the provided documents"</em> rather than guessing.</p>
+    <p>The unit of tenancy is the workspace: <strong>one workspace = one company.</strong> Every document, every chunk, and every retrieval query is scoped to a single workspace. That isn't a supporting feature — it is the product's headline claim:</p>
+    <div class="card" style="text-align:center; padding: 26px 24px;">
+      <p class="display" style="font-size:1.22rem; margin:0; line-height:1.45;">Acme's leave policy can <em>never</em> appear in an answer given to a Globex employee.</p>
+    </div>
+    <div class="tip">
+      <span class="label">Why isolation is the product, not a footnote</span>
+      <p>The portfolio market is full of single-user "chat with a PDF" demos. Pointing the same engine at company policy Q&amp;A makes it read as a product — and makes <strong>tenant isolation</strong> the value proposition rather than a technical detail. It is also a genuine production concern almost no demo handles, which is exactly why it is worth proving with a test instead of claiming in a README.</p>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">02</span><h2>A concrete journey</h2></div>
+    <p>The clearest way to see the roles in motion is to follow two people through the app:</p>
+    <ol class="journey">
+      <li><p>Priya signs up. She belongs to no workspace yet, so she <b>creates "Acme"</b> — which makes her its <b>Owner</b>.</p></li>
+      <li><p>She uploads <code>acme-hr-handbook.pdf</code>. It is parsed, cleaned, chunked into ~500-token passages with ~15% overlap, embedded via Gemini, and stored as <code>document_chunks</code> rows — <b>each row stamped with <code>workspace_id</code></b>.</p></li>
+      <li><p>She invites Rahul. He accepts and joins Acme as a <b>Member</b>.</p></li>
+      <li><p>Rahul asks <em>"How many casual leaves do I get?"</em> The question is embedded; chunks are <b>filtered to <code>workspace_id = acme</code> before the vector search</b>; the top matches are ranked; a grounded prompt goes to Gemini.</p></li>
+      <li><p>He gets <em>"12 casual leaves per year"</em> with a citation chip that reveals the exact handbook passage it came from.</p></li>
+      <li><p>The same question asked inside Globex returns <b>Globex's</b> number. A Globex-only question asked inside Acme returns <b>"I don't know"</b> — and a named regression test asserts precisely that.</p></li>
+    </ol>
+  </section>
+
+  <!-- 3 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">03</span><h2>Two independent role axes</h2></div>
+    <p>This is the part worth being precise about, because the app deliberately has <strong>two separate role systems that do not talk to each other</strong>.</p>
+    <div class="axes">
+      <div class="role">
+        <h3>Axis 1 — Platform role</h3>
+        <p><code>users.role</code> · <code>App\Enums\UserRole</code></p>
+        <p style="font-size:.95rem; color:var(--ink)">Who you are on Chattrix-the-service. Values: <code>SuperAdmin</code> | <code>User</code>. Global — one per account. Governs <em>operating the service</em>: billing, abuse, platform metrics.</p>
+      </div>
+      <div class="role">
+        <h3>Axis 2 — Tenant role</h3>
+        <p><code>App\Enums\WorkspaceRole</code></p>
+        <p style="font-size:.95rem; color:var(--ink)">What you can do <em>inside one specific workspace</em>. Values: <code>Owner</code> | <code>Member</code>. Per-workspace — the same person can be Owner of Acme and Member of Globex at the same time. Governs <em>access to a company's documents</em>.</p>
+      </div>
+    </div>
+    <div class="tip">
+      <span class="label">Why keep them apart</span>
+      <p>They answer different questions, and separating them is what lets the project make its strongest claim: <strong>being a platform administrator grants zero document access.</strong> If the two axes were one, every admin feature would become a potential leak path.</p>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">04</span><h2>Platform roles in detail</h2></div>
+
+    <div class="role" style="margin-bottom:16px">
+      <h3><code>User</code> <span class="badge">default · ships in MVP</span></h3>
+      <p>Every signup is this — <code>users.role</code> defaults to <code>'user'</code>. The only platform role the MVP actually ships.</p>
+      <ul class="can">
+        <li>Create workspaces (becoming their Owner)</li>
+        <li>Be invited to workspaces and act with whatever tenant role they hold there</li>
+      </ul>
+      <ul class="cant">
+        <li>See <em>anything</em> about a workspace they are not a member of</li>
+      </ul>
+    </div>
+
+    <div class="role">
+      <h3><code>SuperAdmin</code> <span class="badge warn">scaffolded · wired to nothing</span></h3>
+      <p>The enum case and <code>User::isSuperAdmin()</code> exist in <code>app/Models/User.php</code>, but nothing calls them — deliberately. M1–M4 ship with no super-admin feature at all, because building it now would delay the demoable core. If it lands after M4, it is scoped to <strong>platform operations only</strong>:</p>
+      <ul class="can">
+        <li>List all workspaces</li>
+        <li>Cross-tenant usage, cost, and latency dashboards</li>
+        <li>View evaluation metrics</li>
+        <li>Disable an abusive tenant</li>
+      </ul>
+      <ul class="cant">
+        <li>Read any document</li>
+        <li>Read any chunk</li>
+        <li>Run a RAG query against a tenant</li>
+      </ul>
+      <div class="tip" style="margin-bottom:0">
+        <span class="label">How the second list is enforced</span>
+        <p>Structurally, not by convention. The retrieval query filters on <code>workspace_id</code> with <strong>no super-admin bypass branch</strong> — there is no <code>if ($user-&gt;isSuperAdmin()) return true;</code> anywhere in the query path. Any break-glass access, if ever needed, goes through an explicit audited path, never a silent policy bypass. The README states it as a feature: <em>"even platform admins cannot read tenant documents through the RAG path — isolation is in the query layer, not just the UI."</em></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">05</span><h2>Tenant roles in detail</h2></div>
+
+    <div class="role" style="margin-bottom:16px">
+      <h3><code>Owner</code> <span class="badge">ships in MVP</span></h3>
+      <p>Creates the workspace. <code>CreateWorkspaceAction</code> sets <code>workspaces.owner_id</code> <em>and</em> attaches the creator to <code>workspace_user</code> — so an Owner is always also a member, which means a plain membership check already covers them. Exactly one per workspace today, since ownership is a single foreign key rather than a role row.</p>
+      <ul class="can">
+        <li>Update and delete the workspace</li>
+        <li>Upload and delete documents</li>
+        <li>Invite and remove members</li>
+        <li>Ask questions; view the member list</li>
+      </ul>
+    </div>
+
+    <div class="role" style="margin-bottom:16px">
+      <h3><code>Member</code> <span class="badge">ships in MVP</span></h3>
+      <p>Joins by invitation.</p>
+      <ul class="can">
+        <li>View the workspace and its documents</li>
+        <li>Upload documents</li>
+        <li>Ask questions; view the member list</li>
+      </ul>
+      <ul class="cant">
+        <li>Update or delete the workspace</li>
+        <li>Manage members or invites</li>
+      </ul>
+    </div>
+
+    <div class="role">
+      <h3><code>Viewer</code> <span class="badge warn">deferred · not in M2</span></h3>
+      <p>Could <code>ask</code> but not upload or delete — the natural next role once you want employees who <em>consume</em> policies without curating them. Worth naming in an interview as a known next step; not worth building yet.</p>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">06</span><h2>Capability matrix</h2></div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Ability</th>
+            <th class="c">Owner</th>
+            <th class="c">Member</th>
+            <th class="c">Viewer<br><span style="font-weight:400; text-transform:none; letter-spacing:0">(deferred)</span></th>
+            <th class="c">Non-member</th>
+            <th class="c">SuperAdmin</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><b>View workspace</b></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="no">✗</span></td><td class="c"><span class="no">✗</span><br><span style="font-size:.82rem;color:var(--faint)">metadata only</span></td></tr>
+          <tr><td><b>Update / delete workspace</b></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="no">✗</span></td><td class="c"><span class="no">✗</span></td><td class="c"><span class="no">✗</span></td><td class="c"><span class="no">✗</span><br><span style="font-size:.82rem;color:var(--faint)">disable-tenant only</span></td></tr>
+          <tr><td><b>Manage members / invites</b></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="no">✗</span></td><td class="c"><span class="no">✗</span></td><td class="c"><span class="no">✗</span></td><td class="c"><span class="no">✗</span></td></tr>
+          <tr><td><b>View documents</b></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="no">✗</span></td><td class="c"><span class="no">✗</span></td></tr>
+          <tr><td><b>Upload document</b></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="no">✗</span></td><td class="c"><span class="no">✗</span></td><td class="c"><span class="no">✗</span></td></tr>
+          <tr><td><b>Delete document</b></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="no">✗</span></td><td class="c"><span class="no">✗</span></td><td class="c"><span class="no">✗</span></td></tr>
+          <tr><td><b>Ask (RAG query)</b></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="no">✗</span></td><td class="c"><span class="no">✗</span><br><span style="font-size:.82rem;color:var(--tip)">no bypass</span></td></tr>
+          <tr><td><b>Platform metrics / cost</b></td><td class="c"><span class="no">✗</span></td><td class="c"><span class="no">✗</span></td><td class="c"><span class="no">✗</span></td><td class="c"><span class="no">✗</span></td><td class="c"><span class="yes">✓</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">07</span><h2>Where enforcement lives — two layers, both required</h2></div>
+    <div class="layer">
+      <span class="tag">LAYER 1</span>
+      <div>
+        <h3><code>WorkspacePolicy</code> — the HTTP gate</h3>
+        <p>In <code>app/Policies/WorkspacePolicy.php</code>. Today: <code>view</code>, <code>create</code>, <code>join</code>, <code>update</code>, <code>delete</code>. The plan adds <code>viewDocuments</code>, <code>uploadDocument</code>, <code>ask</code>. Owner checks compare <code>$workspace-&gt;owner_id</code> to the user's id; member checks are an existence query against <code>workspace_user</code>.</p>
+      </div>
+    </div>
+    <div class="layer">
+      <span class="tag">LAYER 2</span>
+      <div>
+        <h3>The retrieval query — the data gate</h3>
+        <p>Every <code>RagService</code> lookup filters <code>document_chunks.workspace_id</code> <em>before</em> the vector search. <code>workspace_id</code> is denormalised onto <code>document_chunks</code> precisely so this filter needs no join and can never be quietly forgotten.</p>
+      </div>
+    </div>
+    <div class="tip">
+      <span class="label">Why both</span>
+      <p>The policy protects the <em>route</em>; the query protects the <em>data</em>. A bug in one is caught by the other. <strong>M3 is the gate that proves it</strong>: a named feature test that uploads policy docs to both Acme and Globex, asks cross-tenant, and asserts no leak plus an "I don't know" response.</p>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">08</span><h2>Decisions locked for the access model</h2></div>
+    <div class="card">
+      <ul class="ticks">
+        <li><strong>Private workspaces only.</strong> The <code>privacy_type</code> enum is dropped — a public workspace is one where isolation is deliberately off, which contradicts the product's headline claim and would put an unproven branch inside the policy that guards retrieval.</li>
+        <li><strong>Access rule is one sentence:</strong> you can see a workspace if and only if you have a <code>workspace_user</code> row for it.</li>
+        <li><strong>Joining is invite-only</strong> via hashed, expiring, single-use invite tokens — the same token discipline already used for <code>refresh_token</code> (hash at rest, <code>expires_at</code>, <code>revoked_at</code>), so invites extend the existing security story instead of introducing an unrelated concept.</li>
+        <li><strong>Email-domain auto-join is deliberately <em>not</em> built.</strong> An unverified <code>@acme.com</code> address is a self-asserted claim, and free providers would collapse every consumer signup into one workspace. It needs DNS TXT domain verification and a public-suffix blocklist first — worth <em>saying</em> in an interview, not worth shipping now.</li>
+        <li><strong>Guest, public, and anonymous access are out of scope.</strong> A recruiter-facing demo is solved with a pre-joined demo account, not by weakening the isolation invariant.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 9 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">09</span><h2>Gaps between this model and the code — now closed</h2></div>
+    <p>Three places where the code had not caught up to the model above. All three are fixed, and each is now held in place by a test in <code>tests/Feature/Workspace/WorkspaceAccessTest.php</code>.</p>
+
+    <div class="gap done">
+      <h3>1. <code>WorkspaceRole</code> was dead code <span class="badge">fixed</span></h3>
+      <p>The enum existed with <code>Owner</code>/<code>Member</code>, but <code>workspace_user</code> had only <code>user_id</code>, <code>workspace_id</code>, and <code>joined_at</code> — no <code>role</code> column — so the enum was referenced nowhere and tenant role was implicitly derived from <code>workspaces.owner_id</code>.</p>
+      <p class="fix"><b>Fixed by</b> adding a <code>role</code> column to the pivot, defaulting to <code>member</code>. <code>CreateWorkspaceAction</code> writes <code>owner</code>, <code>JoinWorkspaceAction</code> takes a <code>WorkspaceRole</code> parameter, and <code>Workspace::hasMemberWithRole()</code> reads it. The column was added rather than the enum deleted because Viewer needs it, and because it is where an invite writes its baked-in role.</p>
+    </div>
+
+    <div class="gap done">
+      <h3>2. The policy branched on <code>privacy_type</code> <span class="badge">fixed</span></h3>
+      <p><code>view()</code> returned <code>true</code> for any public workspace, and <code>join()</code> permitted <em>only</em> public ones.</p>
+      <p class="fix"><b>Fixed by</b> removing <code>privacy_type</code> from the migration, model <code>$fillable</code>, <code>WorkspaceResource</code>, and both form requests. <code>view()</code> is now <code>hasMember()</code>. The self-serve <code>join</code> route, controller method, and policy ability are gone — <code>JoinWorkspaceAction</code> survives as the membership primitive that invite acceptance will call.</p>
+    </div>
+
+    <div class="gap done">
+      <h3>3. The listing returned every workspace <span class="badge">fixed</span></h3>
+      <p><code>viewAny()</code> returned <code>true</code> unconditionally and <code>index</code> called <code>WorkspaceService::paginate()</code>, which paginated the whole <code>workspaces</code> table — disclosing which companies exist on the instance.</p>
+      <p class="fix"><b>Fixed by</b> pointing <code>index</code> at <code>fetchMyWorkspaces()</code> and deleting <code>paginate()</code>. The now-duplicate <code>/workspaces/me</code> route was removed in favour of the scoped <code>index</code>.</p>
+    </div>
+  </section>
+
+  <!-- 10 -->
+  <section>
+    <div class="sec-head"><span class="sec-num">10</span><h2>Environment — ready to build</h2></div>
+    <div class="card">
+      <ul class="ticks">
+        <li><strong>pgvector 0.8.5</strong> installed and the <code>vector</code> extension enabled on both <code>chattrix</code> and <code>chattrix_testing</code>.</li>
+        <li><strong>Tests moved off sqlite onto Postgres.</strong> sqlite cannot run pgvector, so the M3 isolation test would never have exercised real vector search.</li>
+        <li><strong>Gemini config wired</strong> — <code>services.gemini</code> with <code>key</code>, <code>base_url</code>, <code>chat_model</code>, <code>embed_model</code>, <code>embed_dimensions</code>. The dimension lives in config because the <code>vector(n)</code> column width must match it, which makes an embedding-model change a migration.</li>
+        <li><strong>Test harness</strong> — <code>WorkspaceFactory</code> with <code>ownedBy()</code> and <code>withMembers()</code> states, plus 10 access-model tests.</li>
+      </ul>
+    </div>
+    <div class="tip">
+      <span class="label">Remaining before M1</span>
+      <p><code>composer require smalot/pdfparser</code>, and a real key in <code>GEMINI_API_KEY</code>.</p>
+    </div>
+  </section>
+
+  <footer>
+    <p>Companion to <code>migration.plan.md</code> (the build plan and milestones) and <code>plan.html</code> (the RAG explainer and learning path). This document owns the product definition and the access model; regenerate it when either changes.</p>
+  </footer>
+
+</div>
+</body>
+</html>

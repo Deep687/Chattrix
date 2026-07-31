@@ -143,7 +143,6 @@ Users create communities, post content, vote, and discuss — with AI layered on
 |---|---|---|
 | GET | `/api/communities` | List all |
 | POST | `/api/communities` | Create |
-| GET | `/api/communities/{slug}` | Get one |
 | POST | `/api/communities/{slug}/join` | Join |
 | POST | `/api/communities/{slug}/leave` | Leave |
 

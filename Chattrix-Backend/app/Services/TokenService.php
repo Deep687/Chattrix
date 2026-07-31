@@ -2,10 +2,11 @@
 
 namespace App\Services;
 
-use App\Models\User;
-use Illuminate\Support\Str;
 use App\Models\RefreshToken;
+use App\Models\User;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Service class for handling the generation of access and refresh tokens.
@@ -18,6 +19,7 @@ class TokenService
      * @var int
      */
     private int $accessTokenExpirationInMinutes;
+
     /**
      * The expiration time for refresh tokens in minutes.
      *
@@ -38,7 +40,10 @@ class TokenService
     /**
      * Generate new access and refresh tokens for a user.
      *
-     * @param User $user The user for whom to generate tokens.
+     * @param  User  $user  The user for whom to generate tokens.
+     * @param  CarbonInterface|null  $sessionStartedAt  When the rotation chain originally began.
+     *                                                  Pass the rotated token's value on refresh;
+     *                                                  omit on login to start a new session.
      * @return array{
      *     access_token: string,
      *     refresh_token: string,
@@ -46,45 +51,42 @@ class TokenService
      *     refresh_expires_in: int
      * }
      */
-    public function generateToken(User $user): array
+    public function generateToken(User $user, ?CarbonInterface $sessionStartedAt = null): array
     {
 
-        return DB::transaction(function () use ($user) {
+        return DB::transaction(function () use ($user, $sessionStartedAt) {
 
-        // Delete all existing access tokens
-        $user->tokens()->delete();
+            $accessToken = $user->createToken('auth_token', ['*'], now()->addMinutes($this->accessTokenExpirationInMinutes))->plainTextToken;
 
-        RefreshToken::where('user_id',$user->id)->delete();
+            $refreshToken = Str::random(64);
 
-        $accessToken = $user->createToken('auth_token', ['*'], now()->addMinutes($this->accessTokenExpirationInMinutes))->plainTextToken;
+            $this->createRefreshToken($user, $refreshToken, $sessionStartedAt);
 
-        $refreshToken = Str::random(64);
-
-        $this->createRefreshToken($user, $refreshToken);
-
-
-        return [
-            'access_token' => $accessToken,
-            'refresh_token' => $refreshToken,
-            'access_expires_in' => $this->accessTokenExpirationInMinutes * 60,
-            'refresh_expires_in' => $this->refreshTokenExpirationInMinutes * 60,
-        ];
-         });
+            return [
+                'access_token' => $accessToken,
+                'refresh_token' => $refreshToken,
+                'access_expires_in' => $this->accessTokenExpirationInMinutes * 60,
+                'refresh_expires_in' => $this->refreshTokenExpirationInMinutes * 60,
+            ];
+        });
     }
 
     /**
      * Create and store a new refresh token for the user.
      *
-     * @param User $user The user associated with the refresh token.
-     * @param string $token The plain-text refresh token.
+     * @param  User  $user  The user associated with the refresh token.
+     * @param  string  $token  The plain-text refresh token.
+     * @param  CarbonInterface|null  $sessionStartedAt  Origin of the rotation chain; defaults to
+     *                                                  now, which begins a new session.
      * @return void
      */
-    protected function createRefreshToken(User $user, string $token): void
+    protected function createRefreshToken(User $user, string $token, ?CarbonInterface $sessionStartedAt = null): void
     {
         RefreshToken::create([
             'user_id' => $user->id,
             'token_hash' => hash('sha256', $token),
-            'expires_at' => now()->addMinutes($this->refreshTokenExpirationInMinutes)
+            'expires_at' => now()->addMinutes($this->refreshTokenExpirationInMinutes),
+            'session_started_at' => $sessionStartedAt ?? now(),
         ]);
     }
 }
