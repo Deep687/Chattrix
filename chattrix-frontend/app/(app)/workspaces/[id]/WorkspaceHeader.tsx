@@ -1,5 +1,7 @@
 import WorkspaceAvatar from "@/components/WorkspaceAvatar";
 import type { Workspace } from "@/lib/types";
+import DeleteWorkspaceDialog from "./DeleteWorkspaceDialog";
+import EditWorkspaceDialog from "./EditWorkspaceDialog";
 
 type WorkspaceHeaderProps = {
     workspace: Workspace;
@@ -35,6 +37,13 @@ export default function WorkspaceHeader({ workspace, memberCount }: WorkspaceHea
                             <span className="shrink-0 text-[0.65rem] font-semibold uppercase tracking-wider text-brand bg-brand/10 border border-brand/25 rounded px-1.5 py-0.5">
                                 Owner
                             </span>
+                        )}
+
+                        {workspace.is_owner && (
+                            <div className="flex items-center gap-2 ml-auto shrink-0">
+                                <EditWorkspaceDialog workspace={workspace} />
+                                <DeleteWorkspaceDialog workspace={workspace} />
+                            </div>
                         )}
                     </div>
 
