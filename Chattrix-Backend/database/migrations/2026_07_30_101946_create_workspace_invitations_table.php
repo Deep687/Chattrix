@@ -18,7 +18,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('workspace_id')->constrained('workspaces')->cascadeOnDelete();
             $table->string('email');
-            $table->string('token')->unique();
+            $table->string('token_hash')->unique();
             $table->foreignId('invited_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('accepted_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('expires_at');
