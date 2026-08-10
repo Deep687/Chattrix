@@ -12,7 +12,10 @@
 /.vscode
 /.zed
 /auth.json
+/client_body_temp
+/fastcgi_temp
 /node_modules
+/proxy_temp
 /public/build
 /public/hot
 /public/storage
