@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\WorkspaceInvitation\InviteToWorkspaceAction;
+use App\Events\WorkspaceInvitationCreated;
 use App\Http\Requests\WorkspaceInvitationRequest;
 use App\Http\Resources\WorkspaceInvitationResource;
 use App\Models\Workspace;
@@ -58,6 +59,11 @@ class WorkspaceInvitationController extends Controller
             auth()->user(),
             $workspace,
             $request->validated('email')
+        );
+
+        WorkspaceInvitationCreated::dispatch(
+            $invitation,
+            auth()->user(),
         );
 
         return $this->success(
