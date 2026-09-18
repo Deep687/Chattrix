@@ -7,6 +7,8 @@ export const API_ROUTES = {
         logout:   `${BASE_URL}/api/auth/logout`,
         me:       `${BASE_URL}/api/auth/me`,
         refresh:  `${BASE_URL}/api/auth/refresh`,
+        verifyEmail: (id: string, hash: string) => `${BASE_URL}/api/auth/email/verify/${id}/${hash}`,
+        resendVerification: `${BASE_URL}/api/auth/email/resend`,
     },
     users: `${BASE_URL}/api/users`,
 
