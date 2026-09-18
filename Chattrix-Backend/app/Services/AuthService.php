@@ -2,8 +2,11 @@
 
 namespace App\Services;
 
+use App\Enums\EmailVerificationOutcome;
 use App\Models\RefreshToken;
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -23,11 +26,15 @@ class AuthService
      */
     public function register(array $validatedData): User
     {
-        return User::create([
+        $user = User::create([
             'name' => $validatedData['name'],
             'email' => $validatedData['email'],
             'password' => Hash::make($validatedData['password']),
         ]);
+
+        event(new Registered($user));
+
+        return $user;
     }
 
     /**
@@ -124,5 +131,50 @@ class AuthService
 
             return $sessionHasAgedOut ? null : $refreshToken;
         });
+    }
+
+    /**
+     * Confirm a user's email address from a signed verification link.
+     *
+     * The hash also guards against a stale link after an email change.
+     *
+     * @param  int  $id  The user id from the verification link.
+     * @param  string  $hash  The sha1(email) hash from the verification link.
+     * @return EmailVerificationOutcome The result of the verification attempt.
+     */
+    public function verifyEmail(int $id, string $hash): EmailVerificationOutcome
+    {
+        $user = User::findOrFail($id);
+
+        if (! hash_equals(sha1($user->getEmailForVerification()), $hash)) {
+            return EmailVerificationOutcome::Invalid;
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            return EmailVerificationOutcome::AlreadyVerified;
+        }
+
+        $user->markEmailAsVerified();
+
+        event(new Verified($user));
+
+        return EmailVerificationOutcome::Verified;
+    }
+
+    /**
+     * Resend the email verification notification to a user.
+     *
+     * @param  User  $user  The currently authenticated user.
+     * @return bool Whether a notification was sent, or false when the email was already verified.
+     */
+    public function resendVerificationEmail(User $user): bool
+    {
+        if ($user->hasVerifiedEmail()) {
+            return false;
+        }
+
+        $user->sendEmailVerificationNotification();
+
+        return true;
     }
 }

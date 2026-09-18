@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\User\UpdateProfileAction;
+use App\Enums\EmailVerificationOutcome;
 use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\LoginUserRequest;
 use App\Http\Requests\UpdateProfileRequest;
@@ -145,5 +146,37 @@ class AuthController extends Controller
         return $this->success([
             'user' => new UserResource($user),
         ], 200, 'Profile updated successfully');
+    }
+
+    /**
+     * Confirm a user's email address from a signed verification link.
+     *
+     * @param  Request  $request
+     * @param  int  $id
+     * @param  string  $hash
+     * @return JsonResponse
+     */
+    public function verifyEmail(Request $request, int $id, string $hash): JsonResponse
+    {
+        $outcome = $this->authService->verifyEmail($id, $hash);
+
+        return $outcome === EmailVerificationOutcome::Invalid
+            ? $this->error(null, $outcome->status(), $outcome->message())
+            : $this->success(null, $outcome->status(), $outcome->message());
+    }
+
+    /**
+     * Resend the email verification notification to the authenticated user.
+     *
+     * @param  Request  $request
+     * @return JsonResponse
+     */
+    public function resendVerificationEmail(Request $request): JsonResponse
+    {
+        $sent = $this->authService->resendVerificationEmail($request->user());
+
+        return $sent
+            ? $this->success(null, 200, 'Verification email sent')
+            : $this->success(null, 200, 'Email already verified');
     }
 }
