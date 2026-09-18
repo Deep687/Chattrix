@@ -6,13 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class WorkspaceInvitation extends Model
 {
-    /**
-     * The plaintext invite token, set only when the invitation is issued.
-     *
-     * Declared, not dynamic — an undeclared name would land in `$attributes` and be persisted.
-     */
-    public ?string $plainTextToken = null;
-
     protected $fillable = [
         'workspace_id',
         'email',
