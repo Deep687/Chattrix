@@ -26,10 +26,18 @@ Route::prefix('auth')->group(function () {
         ->middleware('throttle:6,1')
         ->name('auth.logout');
 
+    Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
+        ->middleware(['signed', 'throttle:6,1'])
+        ->name('verification.verify');
+
     Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/me', [AuthController::class, 'me'])->name('auth.me');
         Route::put('/me', [AuthController::class, 'update'])->name('auth.update');
+
+        Route::post('/email/resend', [AuthController::class, 'resendVerificationEmail'])
+            ->middleware('throttle:6,1')
+            ->name('verification.resend');
     });
 });
 
@@ -44,7 +52,7 @@ Route::post('/auth/refresh', [AuthController::class, 'refresh'])
     |--------------------------------------------------------------------------
     */
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::get('/workspaces/{workspace}/members', [WorkspaceController::class, 'members'])->name('workspaces.members');
 
@@ -63,7 +71,7 @@ Route::middleware('auth:sanctum')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
 });
