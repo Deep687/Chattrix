@@ -2,30 +2,36 @@
 
 import { useEffect } from "react";
 import type { ReactNode } from "react";
-import axios from "axios";
-import { setUser, clearUser } from "@/lib/features/userSlice";
-import { useAppDispatch } from "@/lib/hooks";
+import { usePathname, useRouter } from "next/navigation";
+import { useAppSelector } from "@/lib/hooks";
+import { useRefreshUser } from "@/lib/useRefreshUser";
+
+// Unverified users get redirected here; also exempt from the check below.
+const VERIFICATION_PAGE = "/verify-email";
 
 export default function AuthProvider({
     children,
 }: {
     children: ReactNode;
 }) {
-    const dispatch = useAppDispatch();
+    const router = useRouter();
+    const pathname = usePathname();
+    const user = useAppSelector((state) => state.user.data);
+    const refreshUser = useRefreshUser();
 
-    const getUser = async () => {
-        try {
-            const response = await axios.get("/api/auth/me");
-
-            dispatch(setUser(response.data.data.user));
-        } catch {
-            dispatch(clearUser());
-        }
-    };
-
+    // Fetch the user once on mount.
     useEffect(() => {
-        void getUser();
-    }, []);
+        void refreshUser();
+    }, [refreshUser]);
+
+    // Redirect if unverified, on user load or route change.
+    useEffect(() => {
+        const isUnverified = user && !user.email_verified_at;
+
+        if (isUnverified && pathname !== VERIFICATION_PAGE) {
+            router.replace(VERIFICATION_PAGE);
+        }
+    }, [user, pathname, router]);
 
     return <>{children}</>;
 }
