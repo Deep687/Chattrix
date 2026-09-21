@@ -21,6 +21,13 @@ export const API_ROUTES = {
         members: (id: string | number) => `${BASE_URL}/api/workspaces/${id}/members`,
         invitations: (id: string | number) => `${BASE_URL}/api/workspaces/${id}/invitations`,
     },
+
+    // Redeeming an invite is keyed by the emailed token, not by workspace id: the invitee
+    // cannot be told the id before they are a member, so these sit outside `workspaces`.
+    invitations: {
+        show:   (token: string) => `${BASE_URL}/api/workspaces/invitations/${token}`,
+        accept: (token: string) => `${BASE_URL}/api/workspaces/invitations/${token}/accept`,
+    },
 }
 
 // Public storage assets (avatars, etc.) are served directly to the browser,

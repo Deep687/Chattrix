@@ -1,14 +1,21 @@
 "use client"
 import Link from "next/link";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import { setUser } from "@/lib/features/userSlice";
 import { useAppDispatch } from "@/lib/hooks";
+import { safeNext } from "@/lib/safeNext";
 
-export default function Login() {
+/**
+ * `?next=` exists for the invite flow: an invitee arrives at the accept page logged out, and
+ * has to come back to that exact link afterwards. It is run through `safeNext` rather than
+ * used directly, since an unchecked redirect target is an open redirect.
+ */
+function LoginForm() {
 const router = useRouter();
 const dispatch = useAppDispatch();
+const next = safeNext(useSearchParams().get("next"));
 type LoginForm = {
   email: string;
   password: string;
@@ -52,7 +59,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     const response = await axios.post<LoginSuccessResponse>('/api/auth/login', form);
     dispatch(setUser(response.data.data));
     setSuccessMessage('Logged in successfully! Redirecting…');
-    setTimeout(() => router.push('/dashboard'), 2000);
+    setTimeout(() => router.push(next), 2000);
   } catch (error) {
     if (axios.isAxiosError(error)) {
       if (error.response?.status === 422) {
@@ -73,7 +80,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
           <h1 className="text-2xl font-bold tracking-tight">Log in to Chattrix</h1>
           <p className="mt-2 text-dim text-sm">
             New here?{" "}
-            <Link href="/signup" className="text-red-400 hover:text-red-300 transition-colors">
+            <Link href={`/signup?next=${encodeURIComponent(next)}`} className="text-red-400 hover:text-red-300 transition-colors">
               Create an account
             </Link>
           </p>
@@ -127,5 +134,13 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         </form>
 
       </div>
+  );
+}
+
+export default function Login() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }
