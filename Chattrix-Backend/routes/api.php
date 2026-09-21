@@ -48,6 +48,26 @@ Route::post('/auth/refresh', [AuthController::class, 'refresh'])
     ->name('auth.refresh')->middleware(['throttle:6,1', 'SanctumRefresh']);
 /*
     |--------------------------------------------------------------------------
+    | Workspace invitations
+    |--------------------------------------------------------------------------
+    */
+
+/**
+ * The preview sits outside the auth group because the invitee typically has no account yet;
+ * the unguessable token is the only credential it needs, and it grants nothing but a look at
+ * the workspace name. Accepting stays behind `auth:sanctum` + `verified` — membership requires
+ * a real, verified identity to attach to.
+ */
+Route::get('/workspaces/invitations/{token}', [WorkspaceInvitationController::class, 'show'])
+    ->middleware('throttle:10,1')
+    ->name('workspaces.invitations.show');
+
+Route::post('/workspaces/invitations/{token}/accept', [WorkspaceInvitationController::class, 'accept'])
+    ->middleware(['auth:sanctum', 'verified', 'throttle:10,1'])
+    ->name('workspaces.invitations.accept');
+
+/*
+    |--------------------------------------------------------------------------
     | Workspaces
     |--------------------------------------------------------------------------
     */

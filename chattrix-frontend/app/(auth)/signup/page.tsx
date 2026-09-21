@@ -1,11 +1,17 @@
 "use client"
 import Link from "next/link";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
+import { safeNext } from "@/lib/safeNext";
 
-export default function SignUpPage() {
+/**
+ * Carries `?next=` through to login rather than consuming it: signup does not create a session,
+ * and the invite it usually came from still needs a verified one. See the login page.
+ */
+function SignUpForm() {
 const router = useRouter();
+const next = safeNext(useSearchParams().get("next"));
 type SignUpForm = {
   name: string;
   email: string;
@@ -36,7 +42,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   try {
     await axios.post('/api/auth/signup', form);
     setSuccessMessage('Account created! Redirecting to login…');
-    setTimeout(() => router.push('/login'), 2000);
+    setTimeout(() => router.push(`/login?next=${encodeURIComponent(next)}`), 2000);
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 422) {
       setErrors(error.response.data.errors);
@@ -53,7 +59,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
           <h1 className="text-2xl font-bold tracking-tight">Create an account</h1>
           <p className="mt-2 text-dim text-sm">
             Already have one?{" "}
-            <Link href="/login" className="text-red-400 hover:text-red-300 transition-colors">
+            <Link href={`/login?next=${encodeURIComponent(next)}`} className="text-red-400 hover:text-red-300 transition-colors">
               Log in
             </Link>
           </p>
@@ -115,5 +121,13 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         </form>
 
       </div>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense>
+      <SignUpForm />
+    </Suspense>
   );
 }
