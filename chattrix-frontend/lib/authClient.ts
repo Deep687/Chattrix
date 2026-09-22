@@ -5,6 +5,7 @@ export function verifyEmail(query: string) {
     return axios.get(`/api/auth/verify-email?${query}`);
 }
 
-export function resendVerificationEmail() {
-    return axios.post("/api/auth/email/resend");
+/** `next` rides along into the emailed link so verifying can return to an invite. */
+export function resendVerificationEmail(next?: string) {
+    return axios.post("/api/auth/email/resend", next ? { next } : {});
 }

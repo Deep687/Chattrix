@@ -34,11 +34,15 @@ class SanctumRefresh
             return response()->json([
                 'message' => 'token not found',
             ], 401);
-        } elseif ($token->revoked_at) {
+        }
+
+        if ($token->revoked_at) {
             return response()->json([
                 'message' => 'token already revoked',
             ], 401);
-        } elseif ($token->expires_at->isPast()) {
+        }
+
+        if ($token->expires_at->isPast()) {
             $token->delete();
 
             return response()->json([

@@ -8,6 +8,9 @@ import { safeNext } from "@/lib/safeNext";
 /**
  * Carries `?next=` through to login rather than consuming it: signup does not create a session,
  * and the invite it usually came from still needs a verified one. See the login page.
+ *
+ * It also goes to the backend, which stamps it into the verification link so the round trip
+ * through the inbox lands back on the invite rather than the dashboard.
  */
 function SignUpForm() {
 const router = useRouter();
@@ -40,7 +43,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   setErrors({});
 
   try {
-    await axios.post('/api/auth/signup', form);
+    await axios.post('/api/auth/signup', { ...form, next });
     setSuccessMessage('Account created! Redirecting to login…');
     setTimeout(() => router.push(`/login?next=${encodeURIComponent(next)}`), 2000);
   } catch (error) {
