@@ -40,3 +40,20 @@ export type WorkspaceMember = {
     joined_at: string;
 };
 
+
+/**
+ * Mirrors `App\Http\Resources\WorkspaceInvitationPreviewResource`.
+ *
+ * Served unauthenticated to whoever holds the link, so it is deliberately thinner than
+ * `WorkspaceInvitation` — enough to say what the invite is for, and nothing else.
+ */
+export type WorkspaceInvitationPreview = {
+    email: string;
+    expires_at: string;
+    workspace: {
+        id: number;
+        name: string;
+        avatar: string | null;
+    };
+    invited_by: string | null;
+};
