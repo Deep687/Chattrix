@@ -66,7 +66,7 @@ Users create communities, post content, vote, and discuss — with AI layered on
 | Backend | Laravel (PHP) |
 | Auth | Laravel Sanctum (token-based) |
 | AI | TBD (OpenAI / Anthropic API) |
-| DB | MySQL |
+| DB | PostgreSQL (pgvector-ready for RAG) |
 | Media storage | TBD (S3 / Cloudinary) |
 
 ---
