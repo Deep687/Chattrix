@@ -39,7 +39,7 @@ DevOps is not a separate topic. It is what happens every time you ship.
 ### Tasks
 - [ ] Write a `Dockerfile` for the Laravel backend (PHP-FPM + Nginx)
 - [ ] Write a `Dockerfile` for the Next.js frontend
-- [ ] Write a `docker-compose.yml` that wires: backend + frontend + MySQL + Redis
+- [ ] Write a `docker-compose.yml` that wires: backend + frontend + PostgreSQL + Redis
 - [ ] Move all secrets to `.env` files, add `.env.example` for both apps
 - [ ] Verify `docker compose up` boots the full stack
 
@@ -158,7 +158,7 @@ DevOps is not a separate topic. It is what happens every time you ship.
 - [ ] Set up Nginx as a reverse proxy for both apps
 - [ ] Issue a free SSL certificate (Let's Encrypt / Certbot)
 - [ ] Set up `systemd` service for the Laravel queue worker
-- [ ] Configure MySQL on the server with a non-root user
+- [ ] Configure PostgreSQL on the server with a non-root user
 - [ ] Run `php artisan migrate --force` as part of the deploy script
 - [ ] Point a domain name to the server
 
