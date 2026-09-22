@@ -1,5 +1,11 @@
 # Auth, Refresh Tokens, and the Next.js BFF Layer
 
+> **Superseded.** This was the design note written *before* rotation was built, and parts of it
+> no longer match the code (it says the middleware reads the token from the request body, that
+> `revoked_at` is unchecked, and that rotation is not implemented — all three have since changed).
+> See [`AUTH_AND_INVITATIONS.md`](AUTH_AND_INVITATIONS.md) for how the system actually works.
+> Kept for the reasoning behind the original decisions.
+
 This document explains the intended authentication architecture for Chattrix: Laravel owns identity and token validation, while Next.js acts as a thin BFF that protects tokens from browser JavaScript and gives the frontend a clean session-like interface.
 
 ## Goals
