@@ -1,0 +1,43 @@
+<!doctype html><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:1280px;height:640px;overflow:hidden}
+  body{
+    background:#0c0808;color:#f0eded;
+    font-family:"SF Pro Display",-apple-system,system-ui,"Helvetica Neue",sans-serif;
+    -webkit-font-smoothing:antialiased;
+    position:relative;display:flex;flex-direction:column;
+  }
+  .glow{position:absolute;inset:0;
+    background:radial-gradient(60% 45% at 50% 0%, rgba(220,38,38,.16), rgba(220,38,38,0) 70%);}
+  .bar{position:relative;display:flex;align-items:center;justify-content:space-between;
+    padding:34px 56px;border-bottom:1px solid rgba(255,255,255,.05)}
+  .mark{font-size:27px;font-weight:700;letter-spacing:-.6px}
+  .mark i{color:#dc2626;font-style:normal}
+  .pill{display:flex;align-items:center;gap:9px;border:1px solid rgba(255,255,255,.10);
+    border-radius:999px;padding:7px 15px;font-size:14px;color:#9a8e8e}
+  .dot{width:7px;height:7px;border-radius:999px;background:#ef4444}
+  main{position:relative;flex:1;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;padding:0 56px}
+  h1{font-size:64px;font-weight:700;letter-spacing:-2.4px;line-height:1.09}
+  p{margin-top:20px;font-size:21px;line-height:1.5;color:#9a8e8e;max-width:620px}
+  .cards{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:0 56px 44px}
+  .card{background:#1a1a1a;border:1px solid rgba(255,255,255,.05);border-radius:14px;padding:20px 22px}
+  .sym{color:#ef4444;font-size:20px;line-height:1;display:block;margin-bottom:11px}
+  .t{font-size:16px;font-weight:600;letter-spacing:-.2px}
+  .d{margin-top:5px;font-size:14.5px;line-height:1.45;color:#9a8e8e}
+</style>
+<div class="glow"></div>
+<div class="bar">
+  <div class="mark">Chatt<i>rix</i></div>
+  <div class="pill"><span class="dot"></span>Early access</div>
+</div>
+<main>
+  <h1>Your team&rsquo;s knowledge,<br>instantly answerable.</h1>
+  <p>Ask your company&rsquo;s documents in plain English. Every answer comes back cited.</p>
+</main>
+<div class="cards">
+  <div class="card"><span class="sym">&#11041;</span><div class="t">Workspaces</div><div class="d">One private space per team.</div></div>
+  <div class="card"><span class="sym">&#9678;</span><div class="t">Your documents</div><div class="d">PDFs and notes, per workspace.</div></div>
+  <div class="card"><span class="sym">&#10022;</span><div class="t">Ask anything</div><div class="d">Grounded answers with citations.</div></div>
+</div>
