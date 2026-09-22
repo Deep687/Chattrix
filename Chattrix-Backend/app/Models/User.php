@@ -39,10 +39,12 @@ class User extends Authenticatable implements MustVerifyEmailContract
 
     /**
      * Send our own frontend-pointed notification instead of Laravel's default.
+     *
+     * @param  string|null  $next  Relative path the verification link should return the user to.
      */
-    public function sendEmailVerificationNotification(): void
+    public function sendEmailVerificationNotification(?string $next = null): void
     {
-        $this->notify(new VerifyEmailNotification);
+        $this->notify(new VerifyEmailNotification($next));
     }
 
     public function isSuperAdmin(): bool

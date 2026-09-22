@@ -7,6 +7,7 @@ import Alert from "@/components/ui/Alert";
 import { resendVerificationEmail, verifyEmail } from "@/lib/authClient";
 import { useAppSelector } from "@/lib/hooks";
 import { useRefreshUser } from "@/lib/useRefreshUser";
+import { safeNext } from "@/lib/safeNext";
 
 // Handles both "clicked the emailed link" and "unverified, waiting" — same page either way.
 function VerifyEmailContent() {
@@ -14,6 +15,10 @@ function VerifyEmailContent() {
   const router = useRouter();
   const refreshUser = useRefreshUser();
   const user = useAppSelector((state) => state.user.data);
+
+  // Set by the invite flow and round-tripped through the emailed link, so verifying from the
+  // inbox lands back on the invitation instead of the dashboard.
+  const next = safeNext(searchParams.get("next"));
 
   const hasToken = Boolean(
     searchParams.get("id") && searchParams.get("hash") && searchParams.get("signature")
@@ -40,7 +45,7 @@ function VerifyEmailContent() {
         const freshUser = await refreshUser();
 
         if (freshUser) {
-          router.replace("/dashboard");
+          router.replace(next);
         }
       })
       .catch((error) => {
@@ -51,12 +56,12 @@ function VerifyEmailContent() {
             : "Something went wrong while verifying your email."
         );
       });
-  }, [hasToken, searchParams, router, refreshUser]);
+  }, [hasToken, searchParams, router, refreshUser, next]);
 
   const handleResend = async () => {
     setResendStatus("sending");
     try {
-      await resendVerificationEmail();
+      await resendVerificationEmail(next);
       setResendStatus("sent");
     } catch {
       setResendStatus("error");
@@ -99,9 +104,12 @@ function VerifyEmailContent() {
           <Alert tone={status === "verified" ? "success" : "error"}>{message}</Alert>
 
           {status === "verified" && user ? (
-            <p className="text-dim text-sm">Redirecting to your dashboard…</p>
+            <p className="text-dim text-sm">Redirecting…</p>
           ) : (
-            <Link href="/login" className="inline-block text-red-400 hover:text-red-300 transition-colors text-sm">
+            <Link
+              href={`/login?next=${encodeURIComponent(next)}`}
+              className="inline-block text-red-400 hover:text-red-300 transition-colors text-sm"
+            >
               {status === "verified" ? "Continue to log in" : "Back to log in"}
             </Link>
           )}
