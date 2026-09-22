@@ -2,9 +2,6 @@
 
 namespace App\Providers;
 
-use Illuminate\Auth\Events\Registered;
-use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -22,6 +19,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Event::listen(Registered::class, SendEmailVerificationNotification::class);
+        // The verification mail is sent by AuthService::register instead of by Laravel's
+        // Registered listener, which takes no arguments and so cannot carry the invite's `next`.
     }
 }

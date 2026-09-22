@@ -164,7 +164,7 @@ function AcceptInvitationContent() {
                         Verify your email address before joining a workspace.
                     </Alert>
 
-                    <Link href="/verify-email" className="inline-block text-red-400 hover:text-red-300 transition-colors text-sm">
+                    <Link href={`/verify-email?next=${returnTo}`} className="inline-block text-red-400 hover:text-red-300 transition-colors text-sm">
                         Verify your email
                     </Link>
                 </>

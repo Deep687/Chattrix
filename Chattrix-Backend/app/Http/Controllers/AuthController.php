@@ -6,6 +6,7 @@ use App\Actions\User\UpdateProfileAction;
 use App\Enums\EmailVerificationOutcome;
 use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\LoginUserRequest;
+use App\Http\Requests\ResendVerificationRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Http\Resources\UserResource;
 use App\Services\AuthService;
@@ -42,7 +43,7 @@ class AuthController extends Controller
     {
         $validatedData = $request->validated();
 
-        $user = $this->authService->register($validatedData);
+        $user = $this->authService->register($validatedData, $validatedData['next'] ?? null);
 
         return $this->success([
             'user' => new UserResource($user),
@@ -168,12 +169,15 @@ class AuthController extends Controller
     /**
      * Resend the email verification notification to the authenticated user.
      *
-     * @param  Request  $request
+     * @param  ResendVerificationRequest  $request
      * @return JsonResponse
      */
-    public function resendVerificationEmail(Request $request): JsonResponse
+    public function resendVerificationEmail(ResendVerificationRequest $request): JsonResponse
     {
-        $sent = $this->authService->resendVerificationEmail($request->user());
+        $sent = $this->authService->resendVerificationEmail(
+            $request->user(),
+            $request->validated('next')
+        );
 
         return $sent
             ? $this->success(null, 200, 'Verification email sent')
