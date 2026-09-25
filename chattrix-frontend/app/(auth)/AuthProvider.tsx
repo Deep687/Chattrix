@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAppSelector } from "@/lib/hooks";
 import { useRefreshUser } from "@/lib/useRefreshUser";
+import AuthListener from "@/components/AuthListener";
 
 // Unverified users get redirected here; also exempt from the check below.
 const VERIFICATION_PAGE = "/verify-email";
@@ -33,5 +34,10 @@ export default function AuthProvider({
         }
     }, [user, pathname, router]);
 
-    return <>{children}</>;
+    return (
+        <>
+            <AuthListener />
+            {children}
+        </>
+    );
 }

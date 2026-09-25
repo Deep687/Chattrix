@@ -33,9 +33,9 @@ Each **workspace = one company**. Seed the demo with 2 fictional companies (e.g.
 "Globex") each holding a handful of policy docs, so the isolation story is visible in the demo
 itself. Keep the platform name **Chattrix**; position it as *"Chattrix — internal policy assistant."*
 
-> **Seed corpus ready:** `seed-data/` holds both companies' policy docs (HR handbook, IT/security,
-> benefits) plus `golden-questions.csv` (factual + negative + cross-tenant isolation probes). See
-> `seed-data/README.md`. Acme and Globex are deliberately contrasting (India/INR/hybrid vs
+> **Seed corpus not created yet:** `seed-data/acme/` and `seed-data/globex/` exist but are empty.
+> To do: each company's policy docs (HR handbook, IT/security, benefits), `golden-questions.csv`
+> (factual + negative + cross-tenant isolation probes) and `seed-data/README.md`. Acme and Globex are deliberately contrasting (India/INR/hybrid vs
 > US/USD/remote) so leaks are obvious — same question returns each company's own answer.
 
 ---
@@ -59,6 +59,35 @@ make this project rare — lean into all three, because they are exactly what in
 against their own company's HR/IT/compliance docs — with workspace-isolated retrieval (proven by a
 cross-tenant leak test), an automated RAG evaluation harness, and per-query cost/latency
 observability. Next.js + Laravel, evolved into a Python/FastAPI AI service."*
+
+---
+
+## Positioning v2 (2026-09-24) — beat ChatGPT where it can't compete
+
+ChatGPT, Claude and Gemini now read documents natively, so "chat with your policies" alone is a
+commodity. The angle is what they can't do inside a company:
+
+> **ChatGPT can read your docs. It can't enforce who's allowed to know what, prove it, or act on it
+> safely.**
+
+**Pitch:** *Company knowledge any AI can use — permission-enforced, provably isolated, every answer
+traceable.*
+
+Differentiators, in build order (each is a milestone in `docs/milestones/`):
+1. **Permission-aware retrieval** — tenant isolation *and* per-document audience, enforced in the
+   retrieval query. Same question, different answer per asker.
+2. **Proof in CI** — isolation, permission-leak and prompt-injection tests; golden-set evals
+   (recall@5, faithfulness) that fail the build on regression.
+3. **Visible answer trace** — "how this was answered" panel: chunks retrieved, chunks filtered by
+   permission, per-stage latency and cost.
+4. **Trustworthy answers** — deep-link citations, effective dates, contradiction warnings.
+5. **MCP server** — use Chattrix knowledge from Claude/ChatGPT/Cursor with the same permissions and
+   audit (built on AgentGate, `~/Herd/agentgate/FEATURES.md`).
+6. **Actions with approval** — leave request / IT ticket: policy check → human approval → audit log.
+7. **Admin value** — knowledge-gaps report + Slack bot.
+
+**Cut / parked:** FastAPI/LangChain extraction (old M6), Teams, billing, extra file types — until
+M1–M6 ship.
 
 ---
 
@@ -168,7 +197,10 @@ Still 100% PHP/Laravel.
 
 ---
 
-## Stage 3 — Extract AI into a Python / FastAPI service (career evolution)
+## Stage 3 — Extract AI into a Python / FastAPI service (career evolution) — ⏸ PARKED
+
+> **Parked 2026-09-24.** Adds no user-visible value; revisit only after M1–M11 ship. Kept below
+> for reference.
 
 **Why:** the AI ecosystem (LangChain, LlamaIndex, Hugging Face, latest research) is Python-first.
 "Laravel + Next.js + Python for AI" is the strongest 2-year profile — reached by *evolving a
@@ -300,20 +332,24 @@ Currently auth + dummy dashboard. Build workspace + RAG UI fresh:
 
 ## Milestones (ship-gates)
 
-- **M1 — "It embeds":** migrations + models + `UploadDocumentAction` + `EmbedDocumentJob`.
-  Verify chunks + embeddings + metadata land in Postgres.
-- **M2 — "It answers":** `RagService` + `AskController` + Ask panel. Grounded, cited answer,
-  with "I don't know" behavior. **← demoable core.**
-- **M3 — "It's isolated" (differentiator gate):** an automated **feature test** proving Acme
-  cannot retrieve Globex's chunks (upload policy docs to both companies, ask cross-tenant, assert
-  no leak + "I don't know" response). Ship this as a named test — it's the core talking point.
-- **M4 — Deploy + README:** live URL, demo credentials for **both seeded companies** (Acme +
-  Globex), architecture write-up (auth ⟂ RAG isolation), ingestion diagram. Demo script shows the
-  same question returning each company's *own* policy. **← Stage 1 complete; resume-ready.**
-- **M5 — hybrid + rerank + evals + observability (Stage 2):** measured quality delta,
-  cost/latency logging. **← the "measured quality" resume story.**
-- **M6 — Python/FastAPI AI service (Stage 3):** extract embed + retrieve + generate into FastAPI
-  (LlamaIndex/LangGraph optional). Completes the Next.js + Laravel + Python profile.
+Revised 2026-09-24 for Positioning v2. One file per milestone in
+[`docs/milestones/`](docs/milestones/README.md) — goal, scope, acceptance criteria, tests.
+
+| # | Milestone | Gate |
+| --- | --- | --- |
+| M1 | It embeds — upload → chunk → embed → Postgres | chunks + metadata land |
+| M2 | It answers — grounded, cited, streamed, "I don't know" | **demoable core** |
+| M3 | It's isolated — cross-tenant + prompt-injection tests | named tests green |
+| M4 | Deploy + README — live URL, Acme/Globex demo | **resume-ready** |
+| M5 | Permission-aware retrieval — per-document audience | same Q, different answer per role |
+| M6 | Measured quality — evals in CI, hybrid + rerank | build fails on regression |
+| M7 | Answer trace — visible retrieval/cost/latency panel | trace on every answer |
+| M8 | Trustworthy answers — deep links, effective dates, conflicts | contradictions flagged |
+| M9 | MCP server (via AgentGate) | Claude uses Chattrix with same permissions |
+| M10 | Actions with approval — leave / IT ticket | approve → execute → audited |
+| M11 | Admin value — knowledge gaps + Slack bot | gaps report + Slack answers |
+
+**Stand-out threshold:** M1–M7. M9 depends on AgentGate v1. Old M6 (FastAPI) is parked.
 
 ---
 
@@ -325,8 +361,13 @@ Currently auth + dummy dashboard. Build workspace + RAG UI fresh:
   on a golden dataset and improved retrieval quality by X%."*
 - **Cost/reliability:** *"Instrumented per-query token cost and latency across the embed→search→
   rerank→generate stages."*
-- **Evolution:** *"Shipped RAG in Laravel, then extracted the AI layer into a FastAPI microservice
-  the Laravel gateway calls — Next.js + Laravel + Python + vector DB, one evolving product."*
+- **Permissions:** *"Enforced per-document audience inside the vector query, so the same question
+  returns different answers per role — proven by a permission-leak test in CI."*
+- **Security:** *"Added a prompt-injection regression suite: a poisoned document cannot escalate
+  access or exfiltrate another tenant's data."*
+- **Agents:** *"Exposed the knowledge base as an MCP server and added approval-gated actions with a
+  tamper-evident audit log."*
+- ~~Evolution (FastAPI)~~ — parked 2026-09-24.
 
 Resume line: **Next.js · Laravel · Python/FastAPI · PostgreSQL/pgvector · RAG (hybrid retrieval,
 reranking, LLM-as-judge eval) · multi-tenant auth · queues · Docker.**
@@ -335,6 +376,10 @@ reranking, LLM-as-judge eval) · multi-tenant auth · queues · Docker.**
 
 ## Decisions (locked)
 - **Provider:** Gemini free tier only, provider-agnostic interface. No mixing.
+  ⚠️ Verify `text-embedding-004` / `gemini-2.0-flash` are still served before M1 — Google retires
+  models fast; `gemini-embedding-001` may be the replacement (dimension change = migration change).
+- **Positioning v2 (2026-09-24):** permission-aware, provable, traceable — see section above.
+  FastAPI extraction parked.
 - **Naming:** full rename to `workspaces` — done.
 - **Storage:** dedicated `documents` + `document_chunks` tables; chunks carry `workspace_id` + metadata.
 - **Isolation:** enforced in the retrieval query AND `WorkspacePolicy`; proven by an M3 test.
@@ -344,9 +389,8 @@ reranking, LLM-as-judge eval) · multi-tenant auth · queues · Docker.**
   `workspace_user` row.*
 - **Invite-only membership.** Hashed, expiring, single-use invite tokens, mirroring the existing
   `refresh_token` discipline (hash at rest, `expires_at`, `revoked_at`) so invites extend the
-  established security story rather than introducing an unrelated mechanism. The
-  `workspace_invites` table is **M2 feature work, not yet built** — `JoinWorkspaceAction` is the
-  membership primitive it will call.
+  established security story rather than introducing an unrelated mechanism. **Built** —
+  `workspace_invitations` table, email invites, preview and acceptance flow (shipped before M1).
 - **Email-domain auto-join is deliberately NOT built.** An unverified `@acme.com` address is a
   self-asserted claim, and free providers would collapse every consumer signup into one workspace.
   It needs DNS TXT domain verification plus a public-suffix blocklist first. Worth *saying* in an

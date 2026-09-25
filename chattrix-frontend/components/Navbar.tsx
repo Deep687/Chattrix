@@ -5,6 +5,7 @@ import { clearUser } from "@/lib/features/userSlice";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import NavUserMenu from "./NavUserMenu";
+import { broadcastLogout } from "@/lib/authChannel";
 
 export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const user = useAppSelector((state) => state.user.data);
@@ -15,6 +16,8 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
     try {
       await axios.post("/api/auth/logout");
     } finally {
+      // In `finally` so a failed logout call still tells the other tabs the cookie is gone.
+      broadcastLogout();
       dispatch(clearUser());
       router.push("/login");
     }
