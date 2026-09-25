@@ -6,6 +6,7 @@ import axios from "axios";
 import { setUser } from "@/lib/features/userSlice";
 import { useAppDispatch } from "@/lib/hooks";
 import { safeNext } from "@/lib/safeNext";
+import { broadcastLogin } from "@/lib/authChannel";
 
 /**
  * `?next=` exists for the invite flow: an invitee arrives at the accept page logged out, and
@@ -58,6 +59,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   try {
     const response = await axios.post<LoginSuccessResponse>('/api/auth/login', form);
     dispatch(setUser(response.data.data));
+    broadcastLogin(response.data.data.id);
     setSuccessMessage('Logged in successfully! Redirecting…');
     setTimeout(() => router.push(next), 2000);
   } catch (error) {
