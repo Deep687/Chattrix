@@ -1,13 +1,26 @@
 "use client"
 import { useState } from "react";
 import axios from "axios";
+import AvatarPicker from "../_components/AvatarPicker";
+import Alert from "@/components/ui/Alert";
+import { Button, linkClass } from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
+import Icon from "@/components/ui/Icon";
+import Badge from "@/components/ui/Badge";
+import Banner from "@/components/ui/Banner";
+import { useWorkspaces } from "@/components/WorkspacesContext";
+import Link from "next/link";
+import TextField from "@/components/ui/TextField";
+import UserAvatar from "@/components/ui/UserAvatar";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { setUser } from "@/lib/features/userSlice";
 import { assetUrl } from "@/lib/api";
 
+/** Your own profile: a read view, and an edit form for name and avatar. */
 export default function ProfilePage() {
     const user = useAppSelector((state) => state.user.data);
     const dispatch = useAppDispatch();
+    const workspaces = useWorkspaces();
 
     const [editing, setEditing] = useState(false);
     const [name, setName] = useState(user?.name ?? "");
@@ -32,6 +45,16 @@ export default function ProfilePage() {
             setAvatar(file);
             setAvatarPreviewUrl(URL.createObjectURL(file));
         }
+    };
+
+    // Seeds the form from the store when editing starts: `useState` above ran before the user
+    // loaded on a direct visit, so its initial values can be empty.
+    const startEditing = () => {
+        setName(user.name);
+        setAvatar(null);
+        setAvatarPreviewUrl(user.avatar ? assetUrl(user.avatar) : null);
+        setError("");
+        setEditing(true);
     };
 
     const handleCancel = () => {
@@ -68,98 +91,153 @@ export default function ProfilePage() {
 
     if (editing) {
         return (
-            <div className="max-w-md mx-auto">
-                <div className="bg-overlay rounded-xl border border-white/5 p-8 space-y-6">
-                    <h1 className="text-xl font-bold tracking-tight">Edit profile</h1>
+            <div className="mx-auto max-w-xl">
+                <Card ruled stacked className="px-7 pt-10 pb-8 sm:px-8">
+                    <p className="eyebrow">Profile · Editing</p>
+                    <h1 className="mt-2 font-serif text-3xl font-semibold tracking-tight text-ink">Edit profile</h1>
+                    <p className="mt-1.5 text-sm text-muted">Your name and avatar are visible to members of your workspaces.</p>
 
-                    {error && (
-                        <p className="px-4 py-3 text-sm text-red-400 bg-red-950/50 border border-red-900 rounded-lg" role="alert">
-                            {error}
-                        </p>
-                    )}
+                    <form onSubmit={handleSubmit} className="mt-7 flex flex-col gap-5">
+                        {error && <Alert tone="error">{error}</Alert>}
 
-                    <form onSubmit={handleSubmit} className="space-y-5">
-                        <div className="flex items-center gap-4">
-                            <div className="h-16 w-16 rounded-full bg-surface ring-1 ring-white/5 overflow-hidden flex items-center justify-center shrink-0">
-                                {avatarPreviewUrl ? (
-                                    <img src={avatarPreviewUrl} alt={name} className="h-full w-full object-cover" />
-                                ) : (
-                                    <span className="text-xl font-bold text-ink">{name.charAt(0).toUpperCase()}</span>
-                                )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <label htmlFor="avatar" className="block text-xs font-medium text-dim mb-1.5">Avatar</label>
-                                <input
-                                    id="avatar"
-                                    name="avatar"
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleAvatarChange}
-                                    className="block w-full text-sm text-dim file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-surface file:text-ink hover:file:bg-white/10 file:cursor-pointer cursor-pointer"
-                                />
-                            </div>
-                        </div>
+                        <AvatarPicker
+                            label="Avatar"
+                            shape="round"
+                            preview={avatarPreviewUrl ?? ""}
+                            fallback={
+                                <span className="flex size-full items-center justify-center rounded-full bg-surface-muted font-serif text-2xl font-semibold text-brand-ink italic ring-1 ring-hairline">
+                                    {name.charAt(0).toUpperCase()}
+                                </span>
+                            }
+                            file={avatar}
+                            accept="image/*"
+                            onChange={handleAvatarChange}
+                            chooseLabel={avatarPreviewUrl ? "Change image" : "Choose image"}
+                            hint="A square image works best."
+                        />
 
-                        <div>
-                            <label htmlFor="name" className="block text-xs font-medium text-dim mb-1.5">Name</label>
-                            <input
-                                id="name"
-                                name="name"
-                                type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                required
-                                maxLength={255}
-                                className="block w-full px-3 py-2.5 bg-surface border border-white/10 rounded-lg text-sm text-ink placeholder:text-fade focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-colors"
-                            />
-                        </div>
+                        <TextField
+                            name="name"
+                            label="Name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            required
+                            maxLength={255}
+                            autoComplete="name"
+                        />
 
-                        <div className="flex items-center justify-end gap-3 pt-2">
-                            <button
-                                type="button"
-                                onClick={handleCancel}
-                                className="px-4 py-2.5 rounded-lg text-sm font-medium text-dim hover:text-ink hover:bg-white/5 transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={saving}
-                                className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-brand hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-overlay disabled:opacity-60 disabled:pointer-events-none transition-colors"
-                            >
+                        <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
+                            <Button variant="ghost" onClick={handleCancel}>Cancel</Button>
+                            <Button type="submit" loading={saving}>
                                 {saving ? "Saving…" : "Save changes"}
-                            </button>
+                            </Button>
                         </div>
                     </form>
-                </div>
+                </Card>
             </div>
         );
     }
 
-    return (
-        <div className="max-w-md mx-auto">
-            <div className="bg-overlay rounded-xl border border-white/5 p-8 flex flex-col items-center text-center">
-                <div className="h-20 w-20 rounded-full bg-surface ring-2 ring-white/5 overflow-hidden flex items-center justify-center shrink-0">
-                    {user.avatar ? (
-                        <img src={assetUrl(user.avatar)} alt={user.name} className="h-full w-full object-cover" />
-                    ) : (
-                        <span className="text-2xl font-bold text-ink">{user.name.charAt(0).toUpperCase()}</span>
-                    )}
-                </div>
-                <h1 className="mt-3 text-xl font-bold tracking-tight">{user.name}</h1>
-                <p className="text-dim text-sm">{user.email}</p>
-                {memberSince && (
-                    <p className="mt-3 text-xs text-fade">Member since {memberSince}</p>
-                )}
+    const owned = workspaces.filter((w) => w.is_owner).length;
 
-                <button
-                    type="button"
-                    onClick={() => setEditing(true)}
-                    className="mt-5 px-4 py-2 rounded-lg text-sm font-medium text-dim hover:text-ink bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
-                >
-                    Edit profile
-                </button>
+    return (
+        <div className="flex flex-col gap-8">
+            <Card stacked className="overflow-hidden motion-safe:animate-ink-fast">
+                <Banner className="h-28" initial={user.name} />
+
+                <div className="relative px-6 pb-7 sm:px-8">
+                    <div className="-mt-11 flex flex-wrap items-end justify-between gap-4">
+                        <span className="rounded-full bg-surface p-1.5 ring-1 ring-hairline">
+                            <UserAvatar name={user.name} avatar={user.avatar} size="lg" />
+                        </span>
+
+                        <Button variant="secondary" onClick={startEditing}>
+                            <Icon name="edit" className="size-4" />
+                            Edit profile
+                        </Button>
+                    </div>
+
+                    <p className="eyebrow mt-5">
+                        <span className="text-brand-ink">01 · </span>Profile
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-3">
+                        <h1 className="font-serif text-4xl leading-[1.05] font-semibold tracking-tight text-ink sm:text-[2.75rem]">{user.name}</h1>
+                        {user.email_verified_at ? (
+                            <Badge tone="success"><Icon name="check" className="size-3" />Verified</Badge>
+                        ) : (
+                            <Badge tone="accent">Unverified</Badge>
+                        )}
+                    </div>
+                    <p className="mt-2 font-serif text-lg break-all text-muted italic">{user.email}</p>
+
+                    <div aria-hidden="true" className="rule-double mt-6" />
+
+                    <dl className="mt-4 grid gap-x-10 gap-y-2 font-mono text-xs tracking-[0.08em] uppercase sm:grid-cols-3">
+                        <Stat label="Workspaces" value={String(workspaces.length)} />
+                        <Stat label="You own" value={String(owned)} />
+                        <Stat label="Member since" value={memberSince ?? "—"} />
+                    </dl>
+                </div>
+            </Card>
+
+            <div className="grid items-start gap-8 lg:grid-cols-5">
+                <Card as="section" className="px-6 pt-6 pb-7 lg:col-span-3">
+                    <div className="flex items-end justify-between gap-3">
+                        <div>
+                            <p className="eyebrow"><span className="text-brand-ink">02 · </span>Index</p>
+                            <h2 className="mt-1.5 font-serif text-2xl font-semibold text-ink">Your workspaces</h2>
+                        </div>
+                        <Link href="/workspaces" className={`text-sm ${linkClass}`}>View all</Link>
+                    </div>
+
+                    <div aria-hidden="true" className="mt-3 border-t border-ink/80" />
+
+                    {workspaces.length === 0 ? (
+                        <p className="mt-4 font-serif text-muted italic">You aren&apos;t in any workspace yet. Create one, or ask your admin for an invite.</p>
+                    ) : (
+                        <ol className="mt-1">
+                            {workspaces.map((workspace, i) => (
+                                <li key={workspace.id}>
+                                    <Link
+                                        href={`/workspaces/${workspace.id}`}
+                                        className="group flex items-baseline gap-3 border-b border-hairline py-3 motion-safe:transition-colors hover:text-brand-ink"
+                                    >
+                                        <span className="w-5 shrink-0 font-mono text-[0.6875rem] text-muted tabular-nums">{String(i + 1).padStart(2, "0")}</span>
+                                        <span className="min-w-0 truncate font-serif text-lg text-ink group-hover:text-brand-ink">{workspace.name}</span>
+                                        <span aria-hidden="true" className="leader" />
+                                        {workspace.is_owner ? <Badge>Owner</Badge> : <Badge tone="muted">Member</Badge>}
+                                    </Link>
+                                </li>
+                            ))}
+                        </ol>
+                    )}
+                </Card>
+
+                <aside aria-label="Notes on privacy" className="lg:col-span-2">
+                    <p className="eyebrow"><span className="text-brand-ink">03 · </span>Notes on privacy</p>
+                    <div aria-hidden="true" className="mt-2 border-t border-ink/80" />
+                    <ol className="mt-4 flex flex-col gap-4 font-serif text-[0.9375rem] leading-relaxed text-muted">
+                        <li className="flex gap-2.5">
+                            <span className="footnote shrink-0">1</span>
+                            Only members of your workspaces see your name and avatar.
+                        </li>
+                        <li className="flex gap-2.5">
+                            <span className="footnote shrink-0">2</span>
+                            Platform admins can&apos;t read your workspaces&apos; documents. Isolation is enforced in the retrieval query, not just the interface.
+                        </li>
+                    </ol>
+                </aside>
             </div>
+        </div>
+    );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+    return (
+        <div className="flex items-baseline">
+            <dt className="text-muted">{label}</dt>
+            <span aria-hidden="true" className="leader" />
+            <dd className="font-semibold text-ink">{value}</dd>
         </div>
     );
 }

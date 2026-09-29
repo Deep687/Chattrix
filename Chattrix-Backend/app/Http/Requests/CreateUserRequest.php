@@ -2,9 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\RelativePath;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Validation\Rules\Password;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Password;
 
 class CreateUserRequest extends FormRequest
 {
@@ -27,6 +28,8 @@ class CreateUserRequest extends FormRequest
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => ['required', 'confirmed', Password::default()],
+            // Where the verification link should land, e.g. the invite they arrived from.
+            'next' => ['nullable', 'string', 'max:255', new RelativePath],
         ];
     }
 }

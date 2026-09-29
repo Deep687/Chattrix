@@ -1,47 +1,37 @@
 import { assetUrl } from "@/lib/api";
+import Icon from "@/components/ui/Icon";
 
 type WorkspaceAvatarProps = {
     avatar: string | null;
+    /** When given, the fallback is a serif monogram of it; otherwise the building mark. */
+    name?: string;
     /** `sm` for the sidebar, `md` for list rows, `lg` for the detail header. */
     size?: "sm" | "md" | "lg";
 };
 
 const SIZES = {
-    sm: "size-6 rounded-md text-[0.7rem]",
-    md: "size-11 rounded-lg text-base",
-    lg: "size-16 rounded-xl text-2xl",
+    sm: { box: "size-6 rounded-[0.2rem] text-sm", icon: "size-3.5" },
+    md: { box: "size-11 rounded-control text-2xl", icon: "size-5" },
+    lg: { box: "size-16 rounded-card text-4xl", icon: "size-7" },
 } as const;
 
 /**
- * A workspace's uploaded avatar, or the ⬡ glyph when it has none.
- *
- * Extracted rather than duplicated: the listing, the detail header, and the sidebar all need it,
- * and the fallback is the part that drifts — a workspace with no avatar rendering as a blank box
- * in one place and a glyph in another reads as a bug rather than a style choice.
- *
- * `alt` is deliberately empty. The avatar always sits beside the workspace name, so describing it
- * again would make a screen reader announce the name twice.
+ * A workspace's uploaded avatar, or a monogram when it has none. Extracted because the fallback
+ * is the part that drifts. `alt` is empty: the name is always beside it.
  */
-export default function WorkspaceAvatar({ avatar, size = "md" }: WorkspaceAvatarProps) {
-    const box = SIZES[size];
+export default function WorkspaceAvatar({ avatar, name, size = "md" }: WorkspaceAvatarProps) {
+    const { box, icon } = SIZES[size];
 
     if (avatar) {
         return (
             // eslint-disable-next-line @next/next/no-img-element
-            <img
-                src={assetUrl(avatar)}
-                alt=""
-                className={`${box} object-cover border border-white/10 shrink-0`}
-            />
+            <img src={assetUrl(avatar)} alt="" className={`${box} shrink-0 object-cover ring-1 ring-hairline`} />
         );
     }
 
     return (
-        <div
-            aria-hidden="true"
-            className={`${box} bg-surface border border-white/10 grid place-items-center text-brand shrink-0`}
-        >
-            ⬡
-        </div>
+        <span aria-hidden="true" className={`${box} inline-flex shrink-0 items-center justify-center bg-brand font-serif leading-none font-semibold text-on-brand italic`}>
+            {name ? name.charAt(0).toUpperCase() : <Icon name="workspace" className={icon} />}
+        </span>
     );
 }

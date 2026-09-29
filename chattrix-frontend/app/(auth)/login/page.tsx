@@ -1,22 +1,18 @@
 "use client"
 import Link from "next/link";
-import { Suspense, useState } from "react";
+import { Suspense, useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import { setUser } from "@/lib/features/userSlice";
 import { useAppDispatch } from "@/lib/hooks";
 import { safeNext } from "@/lib/safeNext";
+import { broadcastLogin } from "@/lib/authChannel";
+import AuthCard from "@/components/AuthCard";
+import TextField from "@/components/ui/TextField";
+import Alert from "@/components/ui/Alert";
+import { Button, linkClass } from "@/components/ui/Button";
 
-/**
- * `?next=` exists for the invite flow: an invitee arrives at the accept page logged out, and
- * has to come back to that exact link afterwards. It is run through `safeNext` rather than
- * used directly, since an unchecked redirect target is an open redirect.
- */
-function LoginForm() {
-const router = useRouter();
-const dispatch = useAppDispatch();
-const next = safeNext(useSearchParams().get("next"));
-type LoginForm = {
+type LoginFields = {
   email: string;
   password: string;
 };
@@ -33,107 +29,103 @@ type LoginSuccessResponse = {
     created_at: string;
   };
   message: string;
-}
-
-const [errors, setErrors] = useState<Partial<Record<keyof LoginForm, string[]>>>({});
-const [loginError, setLoginError] = useState('');
-const [loading, setLoading] = useState(false);
-const [successMessage, setSuccessMessage] = useState('');
-
-const [form, setForm] = useState<LoginForm>({
-  email: "",
-  password: "",
-});
-
-const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  setForm({ ...form, [e.target.name]: e.target.value });
 };
 
-const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  setLoading(true);
-  setErrors({});
-  setLoginError('');
+/**
+ * `?next=` exists for the invite flow: an invitee arrives logged out and must come back to that
+ * exact link. It goes through `safeNext`, since an unchecked redirect target is an open redirect.
+ */
+function LoginForm() {
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const searchParams = useSearchParams();
+  const next = safeNext(searchParams.get("next"));
+  // Set by signup, which hands over here instead of pausing on its own success message.
+  const justSignedUp = searchParams.get("created") === "1";
 
-  try {
-    const response = await axios.post<LoginSuccessResponse>('/api/auth/login', form);
-    dispatch(setUser(response.data.data));
-    setSuccessMessage('Logged in successfully! Redirecting…');
-    setTimeout(() => router.push(next), 2000);
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      if (error.response?.status === 422) {
-        setErrors(error.response.data.errors);
-      } else if (error.response?.status === 401) {
-        setLoginError(error.response.data.message);
+  const [errors, setErrors] = useState<Partial<Record<keyof LoginFields, string[]>>>({});
+  const [loginError, setLoginError] = useState("");
+  const [loading, setLoading] = useState(false);
+  // Keeps the button busy while the next page loads, so a second click can't resubmit.
+  const [redirecting, setRedirecting] = useState(false);
+
+  const [form, setForm] = useState<LoginFields>({
+    email: "",
+    password: "",
+  });
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrors({});
+    setLoginError("");
+
+    try {
+      const response = await axios.post<LoginSuccessResponse>("/api/auth/login", form);
+      dispatch(setUser(response.data.data));
+      broadcastLogin(response.data.data.id);
+      setRedirecting(true);
+      router.replace(next);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 422) {
+          setErrors(error.response.data.errors);
+        } else if (error.response?.status === 401) {
+          setLoginError(error.response.data.message);
+        }
       }
+    } finally {
+      setLoading(false);
     }
-  } finally {
-    setLoading(false);
-  }
-}
+  };
 
   return (
-      <div className="w-full max-w-md p-8 bg-overlay rounded-xl border border-white/5 shadow-xl space-y-7">
+    <AuthCard eyebrow="Sign in" title="Log in to Chattrix" description="Ask your company's policies and get cited answers.">
+      {justSignedUp && <Alert tone="success">Account created. Log in to continue — we&apos;ve emailed you a verification link.</Alert>}
+      {loginError && <Alert tone="error">{loginError}</Alert>}
 
-        <div className="text-center">
-          <h1 className="text-2xl font-bold tracking-tight">Log in to Chattrix</h1>
-          <p className="mt-2 text-dim text-sm">
-            New here?{" "}
-            <Link href={`/signup?next=${encodeURIComponent(next)}`} className="text-red-400 hover:text-red-300 transition-colors">
-              Create an account
-            </Link>
-          </p>
-        </div>
+      <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+        <TextField
+          name="email"
+          type="email"
+          label="Email address"
+          value={form.email}
+          onChange={handleChange}
+          error={errors.email?.[0]}
+          autoComplete="username"
+          required
+          autoFocus
+        />
 
-        {successMessage && (
-          <div className="px-4 py-3 text-sm text-green-400 bg-green-950/50 border border-green-900 rounded-lg" role="alert">
-            {successMessage}
-          </div>
-        )}
-        {loginError && (
-          <div className="px-4 py-3 text-sm text-red-400 bg-red-950/50 border border-red-900 rounded-lg" role="alert">
-            {loginError}
-          </div>
-        )}
+        <TextField
+          name="password"
+          type="password"
+          label="Password"
+          value={form.password}
+          onChange={handleChange}
+          error={errors.password?.[0]}
+          autoComplete="current-password"
+          required
+        />
 
-        <form className="space-y-5" onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="email" className="block text-xs font-medium text-dim mb-1.5">
-              Email address
-            </label>
-            <input
-              value={form.email}
-              onChange={handleChange}
-              id="email" name="email" type="email" autoComplete="email" required
-              className="block w-full px-3 py-2.5 bg-surface border border-white/10 rounded-lg text-sm text-ink placeholder:text-fade focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-colors"
-            />
-            {errors.email && <p className="mt-1.5 text-xs text-red-400">{errors.email[0]}</p>}
-          </div>
+        <Button type="submit" fullWidth loading={loading || redirecting}>
+          {loading ? "Logging in…" : "Log in"}
+        </Button>
+      </form>
 
-          <div>
-            <label htmlFor="password" className="block text-xs font-medium text-dim mb-1.5">
-              Password
-            </label>
-            <input
-              value={form.password}
-              onChange={handleChange}
-              id="password" name="password" type="password" autoComplete="current-password" required
-              className="block w-full px-3 py-2.5 bg-surface border border-white/10 rounded-lg text-sm text-ink placeholder:text-fade focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-colors"
-            />
-            {errors.password && <p className="mt-1.5 text-xs text-red-400">{errors.password[0]}</p>}
-          </div>
+      <hr className="border-hairline" />
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2.5 px-4 rounded-lg text-sm font-semibold text-white bg-brand hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-overlay transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Logging in…' : 'Log in'}
-          </button>
-        </form>
-
-      </div>
+      <p className="text-center text-sm text-muted">
+        New here?{" "}
+        <Link href={`/signup?next=${encodeURIComponent(next)}`} className={linkClass}>
+          Create an account
+        </Link>
+      </p>
+    </AuthCard>
   );
 }
 
