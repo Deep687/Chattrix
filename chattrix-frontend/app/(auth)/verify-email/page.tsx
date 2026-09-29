@@ -3,11 +3,23 @@ import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
+import AuthCard from "@/components/AuthCard";
 import Alert from "@/components/ui/Alert";
+import Icon, { type IconName } from "@/components/ui/Icon";
+import { Button, Spinner, linkClass } from "@/components/ui/Button";
 import { resendVerificationEmail, verifyEmail } from "@/lib/authClient";
 import { useAppSelector } from "@/lib/hooks";
 import { useRefreshUser } from "@/lib/useRefreshUser";
 import { safeNext } from "@/lib/safeNext";
+
+type Status = "pending" | "verifying" | "verified" | "error";
+
+const TILE: Record<Status, { icon: IconName; className: string }> = {
+  pending: { icon: "mail", className: "border-brand/45 text-brand-ink" },
+  verifying: { icon: "mail", className: "border-brand/45 text-brand-ink" },
+  verified: { icon: "check", className: "border-success-ink/50 text-success-ink" },
+  error: { icon: "close", className: "border-danger/50 text-danger-ink" },
+};
 
 // Handles both "clicked the emailed link" and "unverified, waiting" — same page either way.
 function VerifyEmailContent() {
@@ -24,8 +36,7 @@ function VerifyEmailContent() {
     searchParams.get("id") && searchParams.get("hash") && searchParams.get("signature")
   );
 
-  // status: "pending" | "verifying" | "verified" | "error"
-  const [status, setStatus] = useState(hasToken ? "verifying" : "pending");
+  const [status, setStatus] = useState<Status>(hasToken ? "verifying" : "pending");
   const [message, setMessage] = useState("");
   const [resendStatus, setResendStatus] = useState("idle"); // idle | sending | sent | error
 
@@ -68,35 +79,46 @@ function VerifyEmailContent() {
     }
   };
 
+  const titles: Record<Status, string> = {
+    pending: "Check your inbox",
+    verifying: "Verifying your email",
+    verified: "Email verified",
+    error: "Link didn't work",
+  };
+
   return (
-    <div className="w-full max-w-md p-8 bg-overlay rounded-xl border border-white/5 shadow-xl space-y-7 text-center">
-      <h1 className="text-2xl font-bold tracking-tight">Verify your email</h1>
+    <AuthCard eyebrow="Verify email" title={titles[status]}>
+      <span className={`mx-auto -mt-2 inline-flex size-14 items-center justify-center rounded-full border-2 border-double bg-surface ${TILE[status].className}`}>
+        {status === "verifying" ? <Spinner className="size-6" /> : <Icon name={TILE[status].icon} className="size-6" />}
+      </span>
 
       {status === "pending" && (
         <>
-          <p className="text-dim text-sm">
-            We sent a verification link to{" "}
-            <span className="text-ink font-medium">{user?.email}</span>. Click it, then
-            refresh this page.
-          </p>
+          <div className="ruled rounded-card border border-hairline py-4 ps-16 pe-5">
+            <p className="eyebrow">Sent to</p>
+            {user?.email ? (
+              <p className="mt-1 font-serif text-lg leading-snug font-semibold break-all text-ink">{user.email}</p>
+            ) : (
+              <p className="mt-1 font-serif text-lg leading-snug text-muted italic">the address you signed up with</p>
+            )}
+            <p className="mt-1.5 text-sm text-pretty text-muted">Click the link in that email, then refresh this page.</p>
+          </div>
 
           {resendStatus === "sent" && <Alert tone="success">Verification email sent.</Alert>}
           {resendStatus === "error" && (
             <Alert tone="error">Could not send the email. Try again shortly.</Alert>
           )}
 
-          <button
-            onClick={handleResend}
-            disabled={resendStatus === "sending"}
-            className="w-full py-2.5 rounded-lg bg-red-600 hover:bg-red-500 disabled:opacity-50 transition-colors text-sm font-medium"
-          >
+          <Button variant="secondary" fullWidth onClick={handleResend} loading={resendStatus === "sending"}>
             {resendStatus === "sending" ? "Sending…" : "Resend verification email"}
-          </button>
+          </Button>
         </>
       )}
 
       {status === "verifying" && (
-        <p className="text-dim text-sm">Verifying your email address…</p>
+        <p aria-live="polite" className="text-center text-sm text-muted">
+          Confirming your address. This takes a moment.
+        </p>
       )}
 
       {(status === "verified" || status === "error") && (
@@ -104,18 +126,19 @@ function VerifyEmailContent() {
           <Alert tone={status === "verified" ? "success" : "error"}>{message}</Alert>
 
           {status === "verified" && user ? (
-            <p className="text-dim text-sm">Redirecting…</p>
+            <p className="inline-flex items-center justify-center gap-2 text-sm text-muted">
+              <Spinner /> Redirecting…
+            </p>
           ) : (
-            <Link
-              href={`/login?next=${encodeURIComponent(next)}`}
-              className="inline-block text-red-400 hover:text-red-300 transition-colors text-sm"
-            >
-              {status === "verified" ? "Continue to log in" : "Back to log in"}
-            </Link>
+            <p className="text-center text-sm">
+              <Link href={`/login?next=${encodeURIComponent(next)}`} className={linkClass}>
+                {status === "verified" ? "Continue to log in" : "Back to log in"}
+              </Link>
+            </p>
           )}
         </>
       )}
-    </div>
+    </AuthCard>
   );
 }
 

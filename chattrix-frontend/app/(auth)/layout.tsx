@@ -1,16 +1,16 @@
 import type { ReactNode } from "react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
+/** The shell every auth page shares: the app header, one centred column, the footer. */
 export default function AuthLayout({ children }: { children: ReactNode }) {
     return (
-        <div className="relative min-h-screen bg-surface text-ink flex items-center justify-center px-4 overflow-hidden">
-            <div
-                className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[32rem] w-[32rem] rounded-full opacity-20 blur-3xl"
-                style={{ background: "radial-gradient(circle, var(--color-brand) 0%, transparent 70%)" }}
-                aria-hidden="true"
-            />
-            <div className="relative w-full flex items-center justify-center">
+        <div className="flex min-h-dvh flex-col text-ink">
+            <Navbar />
+            <main id="main-content" className="mx-auto flex w-full max-w-7xl grow flex-col px-4 py-12 sm:px-6 sm:py-16">
                 {children}
-            </div>
+            </main>
+            <Footer />
         </div>
     );
 }

@@ -20,10 +20,19 @@ class WorkspaceInvitationMail extends Mailable
         public string $url,
     ) {}
 
+    /**
+     * Names the inviter and the workspace, so the invite is recognisable from the inbox list alone.
+     *
+     * @return Envelope
+     */
     public function envelope(): Envelope
     {
+        $workspace = $this->invitation->workspace?->name;
+
         return new Envelope(
-            subject: 'You have been invited to join a workspace',
+            subject: $workspace
+                ? "{$this->user->name} invited you to {$workspace} on Chattrix"
+                : "{$this->user->name} invited you to a workspace on Chattrix",
         );
     }
 
@@ -31,6 +40,7 @@ class WorkspaceInvitationMail extends Mailable
     {
         return new Content(
             view: 'emails.workspace-invitation',
+            text: 'emails.workspace-invitation-text',
         );
     }
 }

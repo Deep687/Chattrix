@@ -1,129 +1,130 @@
 "use client"
 import Link from "next/link";
-import { Suspense, useState } from "react";
+import { Suspense, useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import { safeNext } from "@/lib/safeNext";
+import AuthCard from "@/components/AuthCard";
+import TextField from "@/components/ui/TextField";
+import { Button, linkClass } from "@/components/ui/Button";
 
-/**
- * Carries `?next=` through to login rather than consuming it: signup does not create a session,
- * and the invite it usually came from still needs a verified one. See the login page.
- *
- * It also goes to the backend, which stamps it into the verification link so the round trip
- * through the inbox lands back on the invite rather than the dashboard.
- */
-function SignUpForm() {
-const router = useRouter();
-const next = safeNext(useSearchParams().get("next"));
-type SignUpForm = {
+type SignUpFields = {
   name: string;
   email: string;
   password: string;
   password_confirmation: string;
 };
 
-type ErrorMessages = Partial<Record<keyof SignUpForm, string[]>>;
+type ErrorMessages = Partial<Record<keyof SignUpFields, string[]>>;
 
-const [errors, setErrors] = useState<ErrorMessages>({});
-const [successMessage, setSuccessMessage] = useState('');
+/**
+ * Carries `?next=` through to login rather than consuming it: signup creates no session. It also
+ * goes to the backend, which stamps it into the verification link so the inbox round trip lands on the invite.
+ */
+function SignUpForm() {
+  const router = useRouter();
+  const next = safeNext(useSearchParams().get("next"));
 
-const [form, setForm] = useState<SignUpForm>({
-  name: "",
-  email: "",
-  password: "",
-  password_confirmation: "",
-});
+  const [errors, setErrors] = useState<ErrorMessages>({});
+  // Keeps the button busy while login loads, so a second click can't create a duplicate.
+  const [redirecting, setRedirecting] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  setForm({ ...form, [e.target.name]: e.target.value });
-};
+  const [form, setForm] = useState<SignUpFields>({
+    name: "",
+    email: "",
+    password: "",
+    password_confirmation: "",
+  });
 
-const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  setErrors({});
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
-  try {
-    await axios.post('/api/auth/signup', { ...form, next });
-    setSuccessMessage('Account created! Redirecting to login…');
-    setTimeout(() => router.push(`/login?next=${encodeURIComponent(next)}`), 2000);
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.response?.status === 422) {
-      setErrors(error.response.data.errors);
-    } else {
-      console.error(error);
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setErrors({});
+    setLoading(true);
+
+    try {
+      await axios.post("/api/auth/signup", { ...form, next });
+      setRedirecting(true);
+      router.replace(`/login?created=1&next=${encodeURIComponent(next)}`);
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 422) {
+        setErrors(error.response.data.errors);
+      } else {
+        console.error(error);
+      }
+    } finally {
+      setLoading(false);
     }
-  }
-}
+  };
 
   return (
-      <div className="w-full max-w-md p-8 bg-overlay rounded-xl border border-white/5 shadow-xl space-y-7">
+    <AuthCard eyebrow="Create account" title="Create your account" description="One account works across every workspace you're invited to.">
 
-        <div className="text-center">
-          <h1 className="text-2xl font-bold tracking-tight">Create an account</h1>
-          <p className="mt-2 text-dim text-sm">
-            Already have one?{" "}
-            <Link href={`/login?next=${encodeURIComponent(next)}`} className="text-red-400 hover:text-red-300 transition-colors">
-              Log in
-            </Link>
-          </p>
-        </div>
+      <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+        <TextField
+          name="name"
+          label="Full name"
+          value={form.name}
+          onChange={handleChange}
+          error={errors.name?.[0]}
+          autoComplete="name"
+          required
+          autoFocus
+        />
 
-        {successMessage && (
-          <div className="px-4 py-3 text-sm text-green-400 bg-green-950/50 border border-green-900 rounded-lg" role="alert">
-            {successMessage}
-          </div>
-        )}
+        <TextField
+          name="email"
+          type="email"
+          label="Work email"
+          value={form.email}
+          onChange={handleChange}
+          error={errors.email?.[0]}
+          hint="Use the address your company invites you with."
+          autoComplete="email"
+          required
+        />
 
-        <form className="space-y-5" onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="name" className="block text-xs font-medium text-dim mb-1.5">Name</label>
-            <input
-              value={form.name} onChange={handleChange}
-              id="name" name="name" type="text" required
-              className="block w-full px-3 py-2.5 bg-surface border border-white/10 rounded-lg text-sm text-ink placeholder:text-fade focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-colors"
-            />
-            {errors.name && <p className="mt-1.5 text-xs text-red-400">{errors.name[0]}</p>}
-          </div>
+        <TextField
+          name="password"
+          type="password"
+          label="Password"
+          value={form.password}
+          onChange={handleChange}
+          error={errors.password?.[0]}
+          hint="At least 8 characters."
+          autoComplete="new-password"
+          required
+        />
 
-          <div>
-            <label htmlFor="email" className="block text-xs font-medium text-dim mb-1.5">Email address</label>
-            <input
-              value={form.email} onChange={handleChange}
-              id="email" name="email" type="email" autoComplete="email" required
-              className="block w-full px-3 py-2.5 bg-surface border border-white/10 rounded-lg text-sm text-ink placeholder:text-fade focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-colors"
-            />
-            {errors.email && <p className="mt-1.5 text-xs text-red-400">{errors.email[0]}</p>}
-          </div>
+        <TextField
+          name="password_confirmation"
+          type="password"
+          label="Confirm password"
+          value={form.password_confirmation}
+          onChange={handleChange}
+          error={errors.password_confirmation?.[0]}
+          autoComplete="new-password"
+          required
+        />
 
-          <div>
-            <label htmlFor="password" className="block text-xs font-medium text-dim mb-1.5">Password</label>
-            <input
-              value={form.password} onChange={handleChange}
-              id="password" name="password" type="password" autoComplete="new-password" required
-              className="block w-full px-3 py-2.5 bg-surface border border-white/10 rounded-lg text-sm text-ink placeholder:text-fade focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-colors"
-            />
-            {errors.password && <p className="mt-1.5 text-xs text-red-400">{errors.password[0]}</p>}
-          </div>
+        <Button type="submit" fullWidth loading={loading || redirecting}>
+          Create account
+        </Button>
+      </form>
 
-          <div>
-            <label htmlFor="password_confirmation" className="block text-xs font-medium text-dim mb-1.5">Confirm password</label>
-            <input
-              value={form.password_confirmation} onChange={handleChange}
-              id="password_confirmation" name="password_confirmation" type="password" autoComplete="new-password" required
-              className="block w-full px-3 py-2.5 bg-surface border border-white/10 rounded-lg text-sm text-ink placeholder:text-fade focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-colors"
-            />
-            {errors.password_confirmation && <p className="mt-1.5 text-xs text-red-400">{errors.password_confirmation[0]}</p>}
-          </div>
+      <hr className="border-hairline" />
 
-          <button
-            type="submit"
-            className="w-full py-2.5 px-4 rounded-lg text-sm font-semibold text-white bg-brand hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-overlay transition-colors"
-          >
-            Create account
-          </button>
-        </form>
-
-      </div>
+      <p className="text-center text-sm text-muted">
+        Already have an account?{" "}
+        <Link href={`/login?next=${encodeURIComponent(next)}`} className={linkClass}>
+          Log in
+        </Link>
+      </p>
+    </AuthCard>
   );
 }
 

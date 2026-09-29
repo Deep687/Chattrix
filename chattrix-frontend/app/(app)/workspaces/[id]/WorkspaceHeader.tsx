@@ -1,4 +1,7 @@
 import WorkspaceAvatar from "@/components/WorkspaceAvatar";
+import Badge from "@/components/ui/Badge";
+import Banner from "@/components/ui/Banner";
+import Card from "@/components/ui/Card";
 import type { Workspace } from "@/lib/types";
 import DeleteWorkspaceDialog from "./DeleteWorkspaceDialog";
 import EditWorkspaceDialog from "./EditWorkspaceDialog";
@@ -10,11 +13,8 @@ type WorkspaceHeaderProps = {
 };
 
 /**
- * Identity block for a workspace: who it is, and whether the caller owns it.
- *
- * The date is formatted with an explicit locale rather than the ambient one. This renders on the
- * server, so `undefined` would pick up the *server's* locale — a US host would show "Mar 2026" to
- * a user whose browser would have said "Mär 2026", with nothing to indicate why.
+ * The workspace's title page. The date uses an explicit locale because this renders on the server,
+ * where `undefined` would pick up the host's locale.
  */
 export default function WorkspaceHeader({ workspace, memberCount }: WorkspaceHeaderProps) {
     const created = new Date(workspace.created_at).toLocaleDateString("en-US", {
@@ -22,46 +22,53 @@ export default function WorkspaceHeader({ workspace, memberCount }: WorkspaceHea
         year: "numeric",
     });
 
+    const meta = [
+        memberCount !== null ? `${memberCount} ${memberCount === 1 ? "member" : "members"}` : null,
+        `Created ${created}`,
+    ].filter(Boolean);
+
     return (
-        <div className="bg-overlay rounded-xl border border-white/5 p-6">
-            <div className="flex items-start gap-5">
-                <WorkspaceAvatar avatar={workspace.avatar} size="lg" />
+        <Card stacked className="overflow-hidden motion-safe:animate-ink-fast">
+            <Banner className="h-28" initial={workspace.name} />
 
-                <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <h1 className="text-xl font-bold tracking-tight truncate">
-                            {workspace.name}
-                        </h1>
+            <div className="relative px-6 pb-7 sm:px-8">
+                <div className="-mt-9 flex flex-wrap items-end justify-between gap-4">
+                    <span className="rounded-card bg-surface p-1.5 ring-1 ring-hairline">
+                        <WorkspaceAvatar avatar={workspace.avatar} name={workspace.name} size="lg" />
+                    </span>
 
-                        {workspace.is_owner && (
-                            <span className="shrink-0 text-[0.65rem] font-semibold uppercase tracking-wider text-brand bg-brand/10 border border-brand/25 rounded px-1.5 py-0.5">
-                                Owner
-                            </span>
-                        )}
-
-                        {workspace.is_owner && (
-                            <div className="flex items-center gap-2 ml-auto shrink-0">
-                                <EditWorkspaceDialog workspace={workspace} />
-                                <DeleteWorkspaceDialog workspace={workspace} />
-                            </div>
-                        )}
-                    </div>
-
-                    <p className="text-dim text-sm leading-relaxed mt-1.5">
-                        {workspace.description || "No description yet."}
-                    </p>
-
-                    <p className="text-fade text-xs mt-3">
-                        {memberCount !== null && (
-                            <>
-                                {memberCount} {memberCount === 1 ? "member" : "members"}
-                                <span className="mx-1.5">·</span>
-                            </>
-                        )}
-                        Created {created}
-                    </p>
+                    {workspace.is_owner && (
+                        <div className="flex shrink-0 items-center gap-2">
+                            <EditWorkspaceDialog workspace={workspace} />
+                            <DeleteWorkspaceDialog workspace={workspace} />
+                        </div>
+                    )}
                 </div>
+
+                <p className="eyebrow mt-5">
+                    <span className="text-brand-ink">01 · </span>Workspace
+                </p>
+
+                <div className="mt-2 flex flex-wrap items-center gap-3">
+                    <h1 className="font-serif text-4xl leading-[1.05] font-semibold tracking-tight text-ink sm:text-[2.75rem]">
+                        {workspace.name}
+                    </h1>
+                    {workspace.is_owner ? <Badge>Owner</Badge> : <Badge tone="muted">Member</Badge>}
+                </div>
+
+                <p className="mt-3 max-w-2xl font-serif text-lg text-pretty text-muted italic">
+                    {workspace.description || "No description yet."}
+                </p>
+
+                <div aria-hidden="true" className="rule-double mt-6" />
+
+                <p className="mt-3 flex flex-wrap gap-x-2 gap-y-1 font-mono text-[0.6875rem] tracking-[0.12em] text-muted uppercase">
+                    {meta.map((item) => (
+                        <span key={item} className="after:ms-2 after:content-['·']">{item}</span>
+                    ))}
+                    <span className="text-success-ink">Private to members</span>
+                </p>
             </div>
-        </div>
+        </Card>
     );
 }
