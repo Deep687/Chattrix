@@ -1,5 +1,10 @@
+import Alert from "@/components/ui/Alert";
+import Badge from "@/components/ui/Badge";
+import Card from "@/components/ui/Card";
+import Icon from "@/components/ui/Icon";
+import UserAvatar from "@/components/ui/UserAvatar";
 import InviteMemberDialog from "./InviteMemberDialog";
-import type { WorkspaceInvitation, WorkspaceMember,Workspace } from "@/lib/types";
+import type { Workspace, WorkspaceInvitation, WorkspaceMember } from "@/lib/types";
 
 type MembersPanelProps = {
     /** `null` when the request failed. An empty array cannot occur: every workspace has an owner. */
@@ -8,47 +13,39 @@ type MembersPanelProps = {
     invitations: WorkspaceInvitation[];
     /** Mirrors the `manageMembers` policy ability, which is an `owner_id` comparison. */
     canInvite: boolean;
-
-    workspace:Workspace ;
+    workspace: Workspace;
 };
 
 /**
- * The workspace roster, sized for the right rail rather than the main column.
+ * The roster, sized for the right rail. Read-only reference material; management gets its own route.
  *
- * Reference material, not a management surface: rows are read-only and carry no per-member
- * actions. Invite/remove is a form, and forms belong on their own route — this panel will grow a
- * "Manage" link to it rather than the controls themselves.
- *
- * A failed fetch renders an error, never the empty state. `fetchFromBackend` collapses every
- * failure to `null`, so treating that as "no members" would show an empty roster on a workspace
- * that has four — a silent lie is worse than a visible error.
- *
- * Order comes from the backend (`WorkspaceService::fetchMembers` sorts the owner first); this
- * component does not re-sort, so there is only one place to change it.
+ * A failed fetch renders an error, never the empty state — showing "no members" on a workspace that
+ * has four is a silent lie. Order comes from the backend (owner first); this doesn't re-sort.
  */
 export default function MembersPanel({ members, invitations, canInvite, workspace }: MembersPanelProps) {
     return (
-        <section className="bg-overlay rounded-xl border border-white/5 p-5 space-y-3">
-            <div className="flex items-center justify-between gap-2">
-                <div className="flex items-baseline gap-2 min-w-0">
-                    <h2 className="text-sm font-semibold">Members</h2>
-
-                    {members !== null && (
-                        <span className="text-fade text-xs">
-                            {members.length} {members.length === 1 ? "person" : "people"}
-                        </span>
-                    )}
+        <Card className="px-5 pt-5 pb-6">
+            <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                    <p className="eyebrow">
+                        <span className="text-brand-ink">04 · </span>Members
+                    </p>
+                    <h2 className="mt-1.5 font-serif text-xl font-semibold text-ink">
+                        {members !== null ? `${members.length} ${members.length === 1 ? "person" : "people"}` : "The roster"}
+                    </h2>
                 </div>
 
                 {canInvite && <InviteMemberDialog workspace={workspace} />}
             </div>
 
+            <div aria-hidden="true" className="mt-3 border-t border-ink/80" />
+
             {members === null ? (
-                <p className="text-sm text-red-400" role="alert">
-                    Couldn&apos;t load the member list. Try reloading the page.
-                </p>
+                <div className="mt-4">
+                    <Alert tone="error">Couldn&apos;t load the member list. Try reloading the page.</Alert>
+                </div>
             ) : (
-                <ul className="divide-y divide-white/5 -my-1.5">
+                <ul className="mt-1 divide-y divide-hairline">
                     {members.map((member) => (
                         <MemberRow key={member.id} member={member} />
                     ))}
@@ -56,73 +53,49 @@ export default function MembersPanel({ members, invitations, canInvite, workspac
             )}
 
             {canInvite && invitations.length > 0 && (
-                <div className="pt-1 space-y-1 border-t border-white/5">
-                    <h3 className="pt-3 text-xs font-semibold text-dim">
-                        Pending
-                        <span className="ml-1.5 font-normal text-fade">{invitations.length}</span>
-                    </h3>
+                <div className="mt-4 border-t border-hairline pt-4">
+                    <p className="eyebrow">Pending · {invitations.length}</p>
 
-                    <ul className="divide-y divide-white/5 -my-1.5">
+                    <ul className="mt-1 divide-y divide-hairline">
                         {invitations.map((invitation) => (
                             <InvitationRow key={invitation.id} invitation={invitation} />
                         ))}
                     </ul>
                 </div>
             )}
-        </section>
+        </Card>
     );
 }
 
-/**
- * A pending invitee: address only, since they may not have an account yet.
- *
- * Expired links are flagged rather than hidden, so the owner knows to re-send.
- */
+/** A pending invitee: address only, since they may not have an account. Expired links are flagged, not hidden, so the owner re-sends. */
 function InvitationRow({ invitation }: { invitation: WorkspaceInvitation }) {
     const isExpired = new Date(invitation.expires_at) < new Date();
 
     return (
-        <li className="flex items-center gap-2.5 py-2.5">
-            <div
-                aria-hidden="true"
-                className="size-8 rounded-full border border-dashed border-white/15 grid place-items-center text-xs text-fade shrink-0"
-            >
-                ✉
-            </div>
+        <li className="flex items-center gap-3 py-2.5">
+            <span aria-hidden="true" className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-dashed border-control text-muted">
+                <Icon name="mail" className="size-4" />
+            </span>
 
-            <div className="min-w-0 flex-1">
-                <p className="text-sm text-dim truncate">{invitation.email}</p>
+            <p className="min-w-0 flex-1 truncate font-serif text-[0.9375rem] text-muted italic">{invitation.email}</p>
 
-                <p className={`text-xs ${isExpired ? "text-red-400/80" : "text-fade"}`}>
-                    {isExpired ? "Link expired" : "Invited"}
-                </p>
-            </div>
+            {isExpired ? <Badge tone="danger">Expired</Badge> : <Badge tone="muted">Invited</Badge>}
         </li>
     );
 }
 
 function MemberRow({ member }: { member: WorkspaceMember }) {
     return (
-        <li className="flex items-center gap-2.5 py-2.5">
-            <div
-                aria-hidden="true"
-                className="size-8 rounded-full bg-surface border border-white/10 grid place-items-center text-xs font-bold shrink-0"
-            >
-                {member.name.charAt(0).toUpperCase()}
-            </div>
+        <li className="flex items-center gap-3 py-3">
+            <UserAvatar name={member.name} size="md" />
 
             <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                    <p className="text-sm font-medium truncate">{member.name}</p>
-
-                    {member.is_owner && (
-                        <span className="shrink-0 text-[0.6rem] font-semibold uppercase tracking-wider text-brand bg-brand/10 border border-brand/25 rounded px-1 py-0.5">
-                            Owner
-                        </span>
-                    )}
+                <div className="flex items-baseline">
+                    <p className="min-w-0 truncate text-sm font-medium text-ink">{member.name}</p>
+                    <span aria-hidden="true" className="leader" />
+                    {member.is_owner ? <Badge>Owner</Badge> : <Badge tone="muted">Member</Badge>}
                 </div>
-
-                <p className="text-dim text-xs truncate">{member.email}</p>
+                <p className="truncate text-xs text-muted">{member.email}</p>
             </div>
         </li>
     );

@@ -1,23 +1,25 @@
 import type { ReactNode } from "react";
 
-const TONE_CLASSES = {
-  success: "text-green-400 bg-green-950/50 border-green-900",
-  error: "text-red-400 bg-red-950/50 border-red-900",
+const TONES = {
+    info: { box: "border-accent text-ink", label: "Note", labelClass: "text-accent-ink" },
+    success: { box: "border-success-ink text-ink", label: "Done", labelClass: "text-success-ink" },
+    error: { box: "border-danger text-danger-ink", label: "Error", labelClass: "text-danger-ink" },
 };
 
-export default function Alert({
-  tone,
-  children,
-}: {
-  tone: "success" | "error";
-  children: ReactNode;
-}) {
-  return (
-    <div
-      className={`px-4 py-3 text-sm rounded-lg border ${TONE_CLASSES[tone]}`}
-      role="alert"
-    >
-      {children}
-    </div>
-  );
+/**
+ * A margin note: a rule down the side and a small-caps label, so the tone reads by word as well as
+ * colour. Errors interrupt (`role="alert"`); the rest are announced politely.
+ */
+export default function Alert({ tone = "info", children }: { tone?: keyof typeof TONES; children: ReactNode }) {
+    const t = TONES[tone];
+
+    return (
+        <div
+            role={tone === "error" ? "alert" : "status"}
+            className={`flex gap-3 border-s-2 bg-surface-muted/60 py-2.5 ps-3.5 pe-3 text-sm motion-safe:animate-ink-fast ${t.box}`}
+        >
+            <span className={`eyebrow shrink-0 pt-0.5 ${t.labelClass}`}>{t.label}</span>
+            <div className="font-medium">{children}</div>
+        </div>
+    );
 }

@@ -2,7 +2,11 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import axios from "axios";
-import { assetUrl } from "@/lib/api";
+import Card from "@/components/ui/Card";
+import EmptyState from "@/components/ui/EmptyState";
+import Banner from "@/components/ui/Banner";
+import { ButtonLink } from "@/components/ui/Button";
+import UserAvatar from "@/components/ui/UserAvatar";
 
 type PublicUser = {
     id: number;
@@ -11,6 +15,7 @@ type PublicUser = {
     created_at: string;
 };
 
+/** Another user's public profile: only name, avatar and join date are exposed. */
 export default function PublicProfilePage() {
     const { id } = useParams<{ id: string }>();
 
@@ -42,21 +47,31 @@ export default function PublicProfilePage() {
 
     if (loading) {
         return (
-            <div className="max-w-md mx-auto">
-                <div className="bg-overlay rounded-xl border border-white/5 p-8 flex flex-col items-center animate-pulse">
-                    <div className="h-20 w-20 rounded-full bg-white/5" />
-                    <div className="mt-3 h-5 w-32 rounded bg-white/5" />
-                    <div className="mt-2 h-3 w-24 rounded bg-white/5" />
-                </div>
+            <div className="mx-auto max-w-lg" aria-busy="true">
+                <Card className="overflow-hidden">
+                    <span className="sr-only">Loading profile…</span>
+                    <div className="ruled h-24 border-b border-hairline" />
+                    <div className="px-7 pb-8">
+                        <div className="-mt-10 size-20 rounded-full bg-surface-muted ring-4 ring-surface motion-safe:animate-pulse" />
+                        <div className="mt-5 h-3 w-20 rounded-[0.2rem] bg-surface-muted motion-safe:animate-pulse" />
+                        <div className="mt-3 h-8 w-52 rounded-[0.2rem] bg-surface-muted motion-safe:animate-pulse" />
+                        <div className="mt-6 h-3 w-full rounded-[0.2rem] bg-surface-muted motion-safe:animate-pulse" />
+                    </div>
+                </Card>
             </div>
         );
     }
 
     if (notFound || !user) {
         return (
-            <div className="bg-overlay rounded-xl border border-white/5 px-8 py-12 text-center">
-                <p className="text-xl font-bold mb-2">User not found</p>
-                <p className="text-dim text-sm">This user doesn&apos;t exist.</p>
+            <div className="mx-auto max-w-lg">
+                <EmptyState
+                    icon="user"
+                    title="User not found"
+                    action={<ButtonLink href="/workspaces" variant="secondary">Back to workspaces</ButtonLink>}
+                >
+                    This profile doesn&apos;t exist, or it&apos;s no longer available.
+                </EmptyState>
             </div>
         );
     }
@@ -64,18 +79,29 @@ export default function PublicProfilePage() {
     const memberSince = new Date(user.created_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
 
     return (
-        <div className="max-w-md mx-auto">
-            <div className="bg-overlay rounded-xl border border-white/5 p-8 flex flex-col items-center text-center">
-                <div className="h-20 w-20 rounded-full bg-surface ring-2 ring-white/5 overflow-hidden flex items-center justify-center shrink-0">
-                    {user.avatar ? (
-                        <img src={assetUrl(user.avatar)} alt={user.name} className="h-full w-full object-cover" />
-                    ) : (
-                        <span className="text-2xl font-bold text-ink">{user.name.charAt(0).toUpperCase()}</span>
-                    )}
+        <div className="mx-auto max-w-xl">
+            <Card stacked className="overflow-hidden motion-safe:animate-ink-fast">
+                <Banner className="h-24" initial={user.name} />
+
+                <div className="relative px-7 pb-8">
+                    <span className="-mt-10 inline-block rounded-full bg-surface p-1.5 ring-1 ring-hairline">
+                        <UserAvatar name={user.name} avatar={user.avatar} size="lg" />
+                    </span>
+
+                    <p className="eyebrow mt-4">Member profile</p>
+                    <h1 className="mt-2 font-serif text-4xl leading-[1.05] font-semibold tracking-tight text-ink">{user.name}</h1>
+
+                    <div aria-hidden="true" className="rule-double mt-6" />
+
+                    <dl className="mt-4 font-mono text-xs tracking-[0.08em] uppercase">
+                        <div className="flex items-baseline">
+                            <dt className="text-muted">Member since</dt>
+                            <span aria-hidden="true" className="leader" />
+                            <dd className="font-semibold text-ink">{memberSince}</dd>
+                        </div>
+                    </dl>
                 </div>
-                <h1 className="mt-3 text-xl font-bold tracking-tight">{user.name}</h1>
-                <p className="mt-3 text-xs text-fade">Member since {memberSince}</p>
-            </div>
+            </Card>
         </div>
     );
 }

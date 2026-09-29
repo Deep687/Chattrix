@@ -1,7 +1,13 @@
 "use client"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import AvatarPicker from "../_components/AvatarPicker";
+import Alert from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
+import Dialog from "@/components/ui/Dialog";
+import Icon from "@/components/ui/Icon";
+import TextField from "@/components/ui/TextField";
 import type { ApiResponse, Workspace } from "@/lib/types";
 
 /** Mirrors `CreateWorkspaceRequest`: `avatar => nullable|image|max:2048` (kilobytes). */
@@ -19,12 +25,8 @@ type WorkspaceForm = {
 type WorkspaceFormError = Partial<Record<keyof WorkspaceForm | 'avatar', string[]>>
 
 /**
- * The create-workspace trigger and modal.
- *
- * Client-side because it is interactive: controlled inputs, a file picker, and per-field
- * validation errors. That is also why it posts through the BFF route at `/api/workspaces`
- * rather than calling Laravel directly — browser code cannot read the httpOnly token cookie,
- * so something server-side has to attach the bearer header.
+ * The create-workspace trigger and modal. Posts through the BFF route at `/api/workspaces`
+ * because browser code can't read the httpOnly token cookie to attach the bearer header itself.
  */
 export default function CreateWorkspaceDialog() {
     const router = useRouter();
@@ -111,11 +113,12 @@ export default function CreateWorkspaceDialog() {
         removeAvatar();
     }
 
-    const closePopup = () => {
+    // Stable, because `Dialog` re-runs its focus effect whenever `onClose` changes identity.
+    const closePopup = useCallback(() => {
         setShowPopup(false);
         setErrors({});
         setSubmitError('');
-    }
+    }, []);
 
     const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -157,172 +160,88 @@ export default function CreateWorkspaceDialog() {
         }
     }
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setForm({ ...form, [e.target.name]: e.target.value })
     }
 
     return (
         <>
             {successMessage && (
-                <div className="flex items-center justify-between gap-4 px-4 py-3 text-sm text-green-400 bg-green-950/50 border border-green-900 rounded-lg" role="status">
-                    <span>{successMessage}</span>
+                <div className="relative">
+                    <Alert tone="success">{successMessage}</Alert>
                     <button
                         type="button"
                         onClick={() => setSuccessMessage('')}
                         aria-label="Dismiss"
-                        className="text-green-400/70 hover:text-green-400 text-base leading-none transition-colors shrink-0"
+                        className="absolute end-1.5 top-1/2 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-control text-muted motion-safe:transition hover:bg-surface hover:text-ink"
                     >
-                        ×
+                        <Icon name="close" className="size-3.5" />
                     </button>
                 </div>
             )}
 
-            <button
-                onClick={handleClick}
-                className="bg-brand hover:bg-red-600 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-overlay"
-            >
+            <Button onClick={handleClick}>
+                <Icon name="plus" className="size-4" />
                 Create workspace
-            </button>
+            </Button>
 
-            {showPopup ? (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
-                    <div
-                        role="dialog"
-                        aria-modal="true"
-                        aria-labelledby="create-workspace-title"
-                        className="w-full max-w-md p-8 bg-overlay rounded-xl border border-white/5 shadow-xl space-y-7 max-h-[90vh] overflow-y-auto text-left"
-                    >
-                        <div className="flex items-start justify-between gap-4">
-                            <div>
-                                <h2 id="create-workspace-title" className="text-2xl font-bold tracking-tight">
-                                    Create workspace
-                                </h2>
-                                <p className="mt-2 text-dim text-sm">
-                                    This is usually your company. Only invited members can see it.
-                                </p>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={closePopup}
-                                aria-label="Close"
-                                className="text-dim hover:text-ink text-xl leading-none transition-colors shrink-0"
-                            >
-                                ×
-                            </button>
-                        </div>
+            <Dialog
+                open={showPopup}
+                onClose={closePopup}
+                title="Create workspace"
+                description="This is usually your company. Only invited members can see it."
+            >
+                <form className="flex flex-col gap-5" onSubmit={handleFormSubmit}>
+                    {submitError && <Alert tone="error">{submitError}</Alert>}
 
-                        {submitError && (
-                            <div className="px-4 py-3 text-sm text-red-400 bg-red-950/50 border border-red-900 rounded-lg" role="alert">
-                                {submitError}
-                            </div>
-                        )}
+                    <TextField
+                        name="name"
+                        label="Workspace name"
+                        value={form.name}
+                        onChange={handleChange}
+                        placeholder="Acme Inc."
+                        required
+                        error={errors.name?.[0]}
+                    />
 
-                        <form className="space-y-5" onSubmit={handleFormSubmit}>
-                            <div>
-                                <label htmlFor="name" className="block text-xs font-medium text-dim mb-1.5">
-                                    Workspace name
-                                </label>
-                                <input value={form.name} onChange={handleChange}
-                                    id="name" name="name"
-                                    type="text"
-                                    placeholder="Acme Inc."
-                                    className="block w-full px-3 py-2.5 bg-surface border border-white/10 rounded-lg text-sm text-ink placeholder:text-fade focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-colors" />
-                                {errors.name && <p className="mt-1.5 text-xs text-red-400">{errors.name[0]}</p>}
-                            </div>
+                    <TextField
+                        name="description"
+                        label="Description"
+                        labelNote="(optional)"
+                        rows={3}
+                        value={form.description}
+                        onChange={handleChange}
+                        placeholder="Internal HR, IT and compliance policies."
+                        error={errors.description?.[0]}
+                    />
 
-                            <div>
-                                <label htmlFor="description" className="block text-xs font-medium text-dim mb-1.5">
-                                    Description <span className="text-fade">(optional)</span>
-                                </label>
-                                <input value={form.description} onChange={handleChange}
-                                    id="description" name="description"
-                                    placeholder="Internal HR, IT and compliance policies."
-                                    className="block w-full px-3 py-2.5 bg-surface border border-white/10 rounded-lg text-sm text-ink placeholder:text-fade focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-colors resize-none" />
-                                {errors.description && <p className="mt-1.5 text-xs text-red-400">{errors.description[0]}</p>}
-                            </div>
+                    <AvatarPicker
+                        label="Avatar"
+                        labelNote="(optional)"
+                        preview={avatarPreview}
+                        fallback={
+                            <span className="flex size-full items-center justify-center bg-brand font-serif text-3xl font-semibold text-on-brand italic">
+                                {form.name.trim() ? form.name.trim().charAt(0).toUpperCase() : <Icon name="workspace" className="size-6" />}
+                            </span>
+                        }
+                        file={avatarFile}
+                        inputRef={avatarInputRef}
+                        accept={AVATAR_ACCEPTED.join(',')}
+                        onChange={handleAvatarChange}
+                        chooseLabel={avatarFile ? 'Change image' : 'Choose image'}
+                        clearLabel="Remove"
+                        onClear={removeAvatar}
+                        error={errors.avatar?.[0]}
+                    />
 
-                            <div>
-                                <span className="block text-xs font-medium text-dim mb-1.5">
-                                    Avatar <span className="text-fade">(optional)</span>
-                                </span>
-
-                                <div className="flex items-center gap-4">
-                                    {avatarPreview ? (
-                                        // eslint-disable-next-line @next/next/no-img-element
-                                        <img
-                                            src={avatarPreview}
-                                            alt="Avatar preview"
-                                            className="size-14 rounded-lg object-cover border border-white/10 shrink-0"
-                                        />
-                                    ) : (
-                                        <div
-                                            aria-hidden="true"
-                                            className="size-14 rounded-lg border border-dashed border-white/15 bg-surface grid place-items-center text-fade text-lg shrink-0"
-                                        >
-                                            ⬡
-                                        </div>
-                                    )}
-
-                                    <div className="min-w-0">
-                                        <input
-                                            ref={avatarInputRef}
-                                            onChange={handleAvatarChange}
-                                            id="avatar" name="avatar"
-                                            type="file"
-                                            accept={AVATAR_ACCEPTED.join(',')}
-                                            className="sr-only" />
-
-                                        <div className="flex items-center gap-3">
-                                            <label
-                                                htmlFor="avatar"
-                                                className="cursor-pointer inline-block py-1.5 px-3 rounded-lg text-xs font-semibold text-ink bg-surface border border-white/10 hover:border-white/25 transition-colors"
-                                            >
-                                                {avatarFile ? 'Change image' : 'Choose image'}
-                                            </label>
-
-                                            {avatarFile && (
-                                                <button
-                                                    type="button"
-                                                    onClick={removeAvatar}
-                                                    className="text-xs text-dim hover:text-ink transition-colors"
-                                                >
-                                                    Remove
-                                                </button>
-                                            )}
-                                        </div>
-
-                                        <p className="mt-1.5 text-xs text-fade truncate">
-                                            {avatarFile
-                                                ? `${avatarFile.name} · ${(avatarFile.size / 1024).toFixed(0)} KB`
-                                                : 'JPG, PNG, WebP or GIF · up to 2 MB'}
-                                        </p>
-                                    </div>
-                                </div>
-                                {errors.avatar && <p className="mt-1.5 text-xs text-red-400">{errors.avatar[0]}</p>}
-                            </div>
-
-                            <div className="flex items-center gap-3 pt-1">
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold text-white bg-brand hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-overlay transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {loading ? 'Creating…' : 'Create workspace'}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={closePopup}
-                                    disabled={loading}
-                                    className="py-2.5 px-4 rounded-lg text-sm font-semibold text-dim hover:text-ink border border-white/10 hover:border-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    Cancel
-                                </button>
-                            </div>
-                        </form>
+                    <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
+                        <Button variant="ghost" onClick={closePopup} disabled={loading}>Cancel</Button>
+                        <Button type="submit" loading={loading}>
+                            {loading ? 'Creating…' : 'Create workspace'}
+                        </Button>
                     </div>
-                </div>
-
-            ) : null}
+                </form>
+            </Dialog>
         </>
     )
 }

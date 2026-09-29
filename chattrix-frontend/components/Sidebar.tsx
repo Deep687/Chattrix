@@ -3,31 +3,12 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import WorkspaceAvatar from "./WorkspaceAvatar";
+import Icon, { type IconName } from "./ui/Icon";
 import type { Workspace } from "@/lib/types";
 
-const NAV_ITEMS = [
-    {
-        label: "Home",
-        href: "/dashboard",
-        icon: (
-            <path d="M10 2.5a1 1 0 01.6.2l7 5.25a1 1 0 01.4.8V16a1.5 1.5 0 01-1.5 1.5h-3.75a.75.75 0 01-.75-.75V13a1 1 0 00-1-1H9a1 1 0 00-1 1v3.75a.75.75 0 01-.75.75H3.5A1.5 1.5 0 012 16V8.75a1 1 0 01.4-.8l7-5.25a1 1 0 01.6-.2z" />
-        ),
-    },
-    {
-        label: "Profile",
-        href: "/profile",
-        icon: (
-            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-        ),
-    },{
-        label: "Your Workspaces",
-        href: "/workspaces",
-        icon: (
-          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-4a1 1 0 00-1-1H9a1 1 0 00-1 1v4a1 1 0
-          01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clipRule="evenodd" />
-      ),
-
-    }
+const NAV_ITEMS: { label: string; href: string; icon: IconName }[] = [
+    { label: "Workspaces", href: "/workspaces", icon: "workspace" },
+    { label: "Profile", href: "/profile", icon: "user" },
 ];
 
 type SidebarContentProps = {
@@ -36,54 +17,111 @@ type SidebarContentProps = {
     onNavigate?: () => void;
 };
 
-function SidebarContent({ pathname, workspaces, onNavigate }: SidebarContentProps) {
-    return (
-        <aside className="flex flex-col gap-0.5">
-            {NAV_ITEMS.map((item) => (
-                <Link
-                    key={item.label}
-                    href={item.href}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${pathname === item.href
-                        ? "bg-brand/10 text-ink font-medium"
-                        : "text-dim hover:bg-white/5 hover:text-ink"
-                        }`}
-                >
-                    <svg className="h-4.5 w-4.5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        {item.icon}
-                    </svg>
-                    {item.label}
-                </Link>
-            ))}
+/** Active item: brand wash, bold ink, and a bar in the margin, so it doesn't rely on colour alone. */
+function itemClass(active: boolean) {
+    return `relative flex items-center gap-3 rounded-control px-3 py-2 text-sm motion-safe:transition-colors ${active
+        ? "bg-brand/10 font-semibold text-ink before:absolute before:inset-y-1.5 before:-start-3 before:w-[3px] before:rounded-e-sm before:bg-brand"
+        : "text-muted hover:bg-surface-muted hover:text-ink"
+        }`;
+}
 
-            <div className="mt-4 pt-4 border-t border-white/5 flex flex-col gap-0.5">
-                <p className="px-3 pb-1 text-[0.7rem] font-semibold uppercase tracking-wider text-fade">
-                    Your workspaces
-                </p>
+function SidebarContent({ pathname, workspaces, onNavigate }: SidebarContentProps) {
+    const current = workspaces.find((w) => pathname === `/workspaces/${w.id}`);
+
+    return (
+        <div className="flex h-full flex-col">
+            {/* Principle 3: always show whose policies you're in. */}
+            <Link
+                href={current ? `/workspaces/${current.id}` : "/workspaces"}
+                onClick={onNavigate}
+                className="group flex items-center gap-3 rounded-card border border-hairline bg-canvas p-3 motion-safe:transition hover:border-control"
+            >
+                {current ? (
+                    <WorkspaceAvatar avatar={current.avatar} name={current.name} size="md" />
+                ) : (
+                    <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-control border border-control text-brand-ink">
+                        <Icon name="workspace" />
+                    </span>
+                )}
+                <span className="min-w-0 flex-1">
+                    <span className="eyebrow block">{current ? "Current" : "Chattrix"}</span>
+                    <span className="mt-0.5 block truncate font-serif text-[1.05rem] leading-snug font-semibold text-ink">
+                        {current ? current.name : "All workspaces"}
+                    </span>
+                </span>
+                <Icon name="chevron" className="size-4 -rotate-90 text-muted motion-safe:transition-transform group-hover:translate-x-0.5" />
+            </Link>
+
+            <nav aria-label="Main" className="mt-6">
+                <p className="eyebrow px-3">Navigate</p>
+                <ul className="mt-2 flex flex-col gap-0.5">
+                    {NAV_ITEMS.map((item) => {
+                        const active = pathname === item.href;
+                        return (
+                            <li key={item.href}>
+                                <Link href={item.href} onClick={onNavigate} aria-current={active ? "page" : undefined} className={itemClass(active)}>
+                                    <Icon name={item.icon} className={`size-4.5 ${active ? "text-brand-ink" : ""}`} />
+                                    {item.label}
+                                </Link>
+                            </li>
+                        );
+                    })}
+                </ul>
+            </nav>
+
+            <nav aria-label="Your workspaces" className="mt-6">
+                <div className="flex items-center justify-between px-3">
+                    <p className="eyebrow">Your workspaces</p>
+                    <span className="font-mono text-[0.6875rem] text-muted tabular-nums">{String(workspaces.length).padStart(2, "0")}</span>
+                </div>
 
                 {workspaces.length === 0 ? (
-                    <p className="px-3 text-xs text-fade leading-relaxed">
-                        No workspaces yet.
+                    <p className="mt-2 px-3 font-serif text-sm text-muted italic">
+                        None yet. Create one, or ask your admin for an invite.
                     </p>
                 ) : (
-                    workspaces.map((workspace) => (
-                        <Link
-                            key={workspace.id}
-                            href={`/workspaces/${workspace.id}`}
-                            onClick={onNavigate}
-                            title={workspace.name}
-                            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-                                pathname === `/workspaces/${workspace.id}`
-                                    ? "bg-brand/10 text-ink font-medium"
-                                    : "text-dim hover:bg-white/5 hover:text-ink"
-                            }`}
-                        >
-                            <WorkspaceAvatar avatar={workspace.avatar} size="sm" />
-                            <span className="truncate">{workspace.name}</span>
-                        </Link>
-                    ))
+                    <ul className="mt-2 flex flex-col gap-0.5">
+                        {workspaces.map((workspace) => {
+                            const href = `/workspaces/${workspace.id}`;
+                            const active = pathname === href;
+                            return (
+                                <li key={workspace.id}>
+                                    <Link href={href} onClick={onNavigate} title={workspace.name} aria-current={active ? "page" : undefined} className={itemClass(active)}>
+                                        <WorkspaceAvatar avatar={workspace.avatar} name={workspace.name} size="sm" />
+                                        <span className="min-w-0 flex-1 truncate">{workspace.name}</span>
+                                        {workspace.is_owner && (
+                                            <span className="font-mono text-[0.625rem] tracking-[0.12em] text-muted uppercase">Own</span>
+                                        )}
+                                    </Link>
+                                </li>
+                            );
+                        })}
+                    </ul>
                 )}
+
+                <Link
+                    href="/workspaces"
+                    onClick={onNavigate}
+                    className="mt-3 flex items-center justify-center gap-2 rounded-control border border-dashed border-control px-3 py-2 text-sm font-medium text-muted motion-safe:transition hover:border-brand hover:bg-brand/5 hover:text-brand-ink"
+                >
+                    <Icon name="plus" className="size-4" />
+                    New workspace
+                </Link>
+            </nav>
+
+            {/* Pinned to the foot of the panel, set as a footnote in the product's own citation style. */}
+            <div className="mt-auto pt-8">
+                <div className="rounded-card border border-hairline bg-canvas p-3.5">
+                    <p className="flex items-center gap-2 eyebrow text-brand-ink">
+                        <Icon name="shield" className="size-3.5" />
+                        Isolated by design
+                    </p>
+                    <p className="mt-1.5 font-serif text-[0.9375rem] leading-snug text-muted italic">
+                        Answers only ever come from the workspace you ask in.
+                    </p>
+                </div>
             </div>
-        </aside>
+        </div>
     );
 }
 
@@ -109,46 +147,40 @@ export default function Sidebar({ workspaces, mobileOpen, onClose }: SidebarProp
 
     return (
         <>
-            <div className="hidden md:block shrink-0 w-60">
-                <div className="sticky top-20 bg-overlay rounded-xl border border-white/5 p-3">
+            {/* A full-height panel flush to the left edge, pinned under the masthead. */}
+            <aside className="hidden w-68 shrink-0 border-e border-hairline bg-surface md:block">
+                <div className="sticky top-15 h-[calc(100dvh-3.75rem)] overflow-y-auto px-4 py-5">
                     <SidebarContent pathname={pathname} workspaces={workspaces} />
                 </div>
-            </div>
+            </aside>
 
             <div
-                className={`md:hidden fixed inset-0 z-50 ${mobileOpen ? "pointer-events-auto" : "pointer-events-none"}`}
+                className={`fixed inset-0 z-50 md:hidden ${mobileOpen ? "pointer-events-auto" : "pointer-events-none"}`}
                 aria-hidden={!mobileOpen}
             >
                 <div
                     onClick={onClose}
-                    className={`absolute inset-0 bg-black/50 transition-opacity ${mobileOpen ? "opacity-100" : "opacity-0"}`}
+                    className={`absolute inset-0 bg-scrim motion-safe:transition-opacity motion-safe:duration-300 ${mobileOpen ? "opacity-100" : "opacity-0"}`}
                 />
 
                 <div
-                    className={`absolute left-0 top-0 h-full w-full max-w-xs bg-overlay border-r border-white/5 shadow-2xl transition-transform overflow-y-auto ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
+                    className={`absolute start-0 top-0 flex h-full w-full max-w-xs flex-col border-e border-hairline bg-surface shadow-pop motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
                 >
-                    <div className="flex items-center justify-between p-4 border-b border-white/5">
-                        <span className="text-sm font-bold tracking-tight">Menu</span>
+                    <div className="flex h-15 shrink-0 items-center justify-between border-b border-hairline px-4">
+                        <span className="eyebrow">Menu</span>
                         <button
                             type="button"
                             onClick={onClose}
                             aria-label="Close menu"
-                            className="h-8 w-8 flex items-center justify-center rounded-lg text-dim hover:text-ink hover:bg-white/5 transition-colors"
+                            className="inline-flex size-9 items-center justify-center rounded-control text-muted motion-safe:transition hover:bg-surface-muted hover:text-ink"
                         >
-                            <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                            </svg>
+                            <Icon name="close" className="size-4" />
                         </button>
                     </div>
 
-                    {/* `onNavigate` closes the drawer on tap: the mobile overlay does not unmount
-                        on navigation, so without it the new page renders behind the open drawer. */}
-                    <div className="p-3">
-                        <SidebarContent
-                            pathname={pathname}
-                            workspaces={workspaces}
-                            onNavigate={onClose}
-                        />
+                    {/* `onNavigate` closes the drawer on tap: the overlay doesn't unmount on navigation. */}
+                    <div className="grow overflow-y-auto px-4 py-5">
+                        <SidebarContent pathname={pathname} workspaces={workspaces} onNavigate={onClose} />
                     </div>
                 </div>
             </div>
