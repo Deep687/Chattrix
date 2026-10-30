@@ -34,11 +34,11 @@ class WorkspacePolicy
     }
 
     /**
-     * Any authenticated user may create a workspace, becoming its owner.
+     * Only company registrants may create a workspace; invited employees join one, never found one.
      */
     public function create(User $user): bool
     {
-        return true;
+        return $user->can_create_workspaces;
     }
 
     public function update(User $user, Workspace $workspace): bool

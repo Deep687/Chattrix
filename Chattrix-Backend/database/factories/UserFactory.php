@@ -42,4 +42,14 @@ class UserFactory extends Factory
             'email_verified_at' => null,
         ]);
     }
+
+    /**
+     * A company registrant, allowed to create workspaces.
+     */
+    public function companyRegistrant(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'can_create_workspaces' => true,
+        ]);
+    }
 }

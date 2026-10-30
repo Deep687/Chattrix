@@ -32,8 +32,8 @@ export default async function WorkspacesPage() {
 
             {workspaces.length === 0 ? (
                 <EmptyState icon="workspace" title="No workspaces yet" action={<CreateWorkspaceDialog />}>
-                    Create a workspace for your company, upload its policy documents, then invite your
-                    team to ask questions against them. Joining someone else&apos;s? Ask them for an invite.
+                    Workspaces are set up by your company. Ask your workspace owner to send you an
+                    invite; it will appear here once you accept it.
                 </EmptyState>
             ) : (
                 <ul className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">

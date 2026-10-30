@@ -13,6 +13,7 @@ type SignUpFields = {
   email: string;
   password: string;
   password_confirmation: string;
+  company_name: string;
 };
 
 type ErrorMessages = Partial<Record<keyof SignUpFields, string[]>>;
@@ -20,10 +21,14 @@ type ErrorMessages = Partial<Record<keyof SignUpFields, string[]>>;
 /**
  * Carries `?next=` through to login rather than consuming it: signup creates no session. It also
  * goes to the backend, which stamps it into the verification link so the inbox round trip lands on the invite.
+ *
+ * Arriving from an invite makes an employee account. Otherwise this registers a company: the
+ * company name is sent and the backend creates its first workspace with this user as owner.
  */
 function SignUpForm() {
   const router = useRouter();
   const next = safeNext(useSearchParams().get("next"));
+  const fromInvite = next.startsWith("/workspace/invitations/");
 
   const [errors, setErrors] = useState<ErrorMessages>({});
   // Keeps the button busy while login loads, so a second click can't create a duplicate.
@@ -35,6 +40,7 @@ function SignUpForm() {
     email: "",
     password: "",
     password_confirmation: "",
+    company_name: "",
   });
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -47,6 +53,7 @@ function SignUpForm() {
     setLoading(true);
 
     try {
+      // An invitee's company_name stays "", which Laravel turns into null: no company is registered.
       await axios.post("/api/auth/signup", { ...form, next });
       setRedirecting(true);
       router.replace(`/login?created=1&next=${encodeURIComponent(next)}`);
@@ -62,9 +69,29 @@ function SignUpForm() {
   };
 
   return (
-    <AuthCard eyebrow="Create account" title="Create your account" description="One account works across every workspace you're invited to.">
+    <AuthCard
+      eyebrow={fromInvite ? "Create account" : "Register your company"}
+      title={fromInvite ? "Create your account" : "Set up your company"}
+      description={fromInvite
+        ? "One account works across every workspace you're invited to."
+        : "You'll own your company's workspace and invite your team to it. Joining an existing company? Use the invite link they emailed you."}
+    >
 
       <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+        {!fromInvite && (
+          <TextField
+            name="company_name"
+            label="Company name"
+            value={form.company_name}
+            onChange={handleChange}
+            error={errors.company_name?.[0]}
+            hint="Becomes your first workspace. You can rename it later."
+            autoComplete="organization"
+            required
+            autoFocus
+          />
+        )}
+
         <TextField
           name="name"
           label="Full name"
@@ -73,7 +100,7 @@ function SignUpForm() {
           error={errors.name?.[0]}
           autoComplete="name"
           required
-          autoFocus
+          autoFocus={fromInvite}
         />
 
         <TextField

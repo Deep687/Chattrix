@@ -86,6 +86,8 @@ class DemoSeeder extends Seeder
             ['description' => $description],
         );
 
+        $owner->forceFill(['can_create_workspaces' => true])->save();
+
         $workspace->members()->syncWithoutDetaching([
             $owner->id => ['role' => WorkspaceRole::Owner->value, 'joined_at' => now()],
         ]);

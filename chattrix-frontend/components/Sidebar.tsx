@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import WorkspaceAvatar from "./WorkspaceAvatar";
 import Icon, { type IconName } from "./ui/Icon";
+import { useAppSelector } from "@/lib/hooks";
 import type { Workspace } from "@/lib/types";
 
 const NAV_ITEMS: { label: string; href: string; icon: IconName }[] = [
@@ -27,6 +28,7 @@ function itemClass(active: boolean) {
 
 function SidebarContent({ pathname, workspaces, onNavigate }: SidebarContentProps) {
     const current = workspaces.find((w) => pathname === `/workspaces/${w.id}`);
+    const canCreateWorkspaces = useAppSelector((state) => state.user.data?.can_create_workspaces ?? false);
 
     return (
         <div className="flex h-full flex-col">
@@ -99,14 +101,16 @@ function SidebarContent({ pathname, workspaces, onNavigate }: SidebarContentProp
                     </ul>
                 )}
 
-                <Link
-                    href="/workspaces"
-                    onClick={onNavigate}
-                    className="mt-3 flex items-center justify-center gap-2 rounded-control border border-dashed border-control px-3 py-2 text-sm font-medium text-muted motion-safe:transition hover:border-brand hover:bg-brand/5 hover:text-brand-ink"
-                >
-                    <Icon name="plus" className="size-4" />
-                    New workspace
-                </Link>
+                {canCreateWorkspaces && (
+                    <Link
+                        href="/workspaces"
+                        onClick={onNavigate}
+                        className="mt-3 flex items-center justify-center gap-2 rounded-control border border-dashed border-control px-3 py-2 text-sm font-medium text-muted motion-safe:transition hover:border-brand hover:bg-brand/5 hover:text-brand-ink"
+                    >
+                        <Icon name="plus" className="size-4" />
+                        New workspace
+                    </Link>
+                )}
             </nav>
 
             {/* Pinned to the foot of the panel, set as a footnote in the product's own citation style. */}
