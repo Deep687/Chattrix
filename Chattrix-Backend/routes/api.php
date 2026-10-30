@@ -15,19 +15,19 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('auth')->group(function () {
 
     Route::post('/register', [AuthController::class, 'register'])
-        ->middleware('throttle:6,1')
+        ->middleware('throttle:auth')
         ->name('auth.register');
 
     Route::post('/login', [AuthController::class, 'login'])
-        ->middleware('throttle:6,1')
+        ->middleware('throttle:auth')
         ->name('auth.login');
 
     Route::post('/logout', [AuthController::class, 'logout'])
-        ->middleware('throttle:6,1')
+        ->middleware('throttle:session-token')
         ->name('auth.logout');
 
     Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
-        ->middleware(['signed', 'throttle:6,1'])
+        ->middleware(['signed', 'throttle:verify-email'])
         ->name('verification.verify');
 
     Route::middleware('auth:sanctum')->group(function () {
@@ -36,7 +36,7 @@ Route::prefix('auth')->group(function () {
         Route::put('/me', [AuthController::class, 'update'])->name('auth.update');
 
         Route::post('/email/resend', [AuthController::class, 'resendVerificationEmail'])
-            ->middleware('throttle:6,1')
+            ->middleware('throttle:verify-resend')
             ->name('verification.resend');
     });
 });
@@ -45,7 +45,7 @@ Route::prefix('auth')->group(function () {
  * Token refresh auth
  */
 Route::post('/auth/refresh', [AuthController::class, 'refresh'])
-    ->name('auth.refresh')->middleware(['throttle:6,1', 'SanctumRefresh']);
+    ->name('auth.refresh')->middleware(['throttle:session-token', 'SanctumRefresh']);
 /*
     |--------------------------------------------------------------------------
     | Workspace invitations
@@ -59,11 +59,11 @@ Route::post('/auth/refresh', [AuthController::class, 'refresh'])
  * a real, verified identity to attach to.
  */
 Route::get('/workspaces/invitations/{token}', [WorkspaceInvitationController::class, 'show'])
-    ->middleware('throttle:10,1')
+    ->middleware('throttle:invitations')
     ->name('workspaces.invitations.show');
 
 Route::post('/workspaces/invitations/{token}/accept', [WorkspaceInvitationController::class, 'accept'])
-    ->middleware(['auth:sanctum', 'verified', 'throttle:10,1'])
+    ->middleware(['auth:sanctum', 'verified', 'throttle:invitations'])
     ->name('workspaces.invitations.accept');
 
 /*
