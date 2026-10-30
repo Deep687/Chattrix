@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\AskController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkspaceController;
@@ -88,7 +90,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
 /*
     |--------------------------------------------------------------------------
-    | Documents
+    | Documents, asking & conversations
     |--------------------------------------------------------------------------
     |
     | Scoped bindings: `{document}` resolves only through `$workspace->documents()`, so another
@@ -109,6 +111,19 @@ Route::middleware(['auth:sanctum', 'verified'])->scopeBindings()->group(function
 
     Route::delete('/workspaces/{workspace}/documents/{document}', [DocumentController::class, 'destroy'])
         ->name('workspaces.documents.destroy');
+
+    Route::get('/workspaces/{workspace}/conversations', [ConversationController::class, 'index'])
+        ->name('workspaces.conversations.index');
+
+    Route::get('/workspaces/{workspace}/conversations/{conversation}', [ConversationController::class, 'show'])
+        ->name('workspaces.conversations.show');
+
+    Route::delete('/workspaces/{workspace}/conversations/{conversation}', [ConversationController::class, 'destroy'])
+        ->name('workspaces.conversations.destroy');
+
+    Route::post('/workspaces/{workspace}/ask', AskController::class)
+        ->middleware('throttle:ask')
+        ->name('workspaces.ask');
 });
 
 /*
