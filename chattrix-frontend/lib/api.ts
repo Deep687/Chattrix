@@ -20,6 +20,11 @@ export const API_ROUTES = {
         show:    (id: string | number) => `${BASE_URL}/api/workspaces/${id}`,
         members: (id: string | number) => `${BASE_URL}/api/workspaces/${id}/members`,
         invitations: (id: string | number) => `${BASE_URL}/api/workspaces/${id}/invitations`,
+        documents: (id: string | number) => `${BASE_URL}/api/workspaces/${id}/documents`,
+        document: (id: string | number, documentId: string | number) => `${BASE_URL}/api/workspaces/${id}/documents/${documentId}`,
+        ask: (id: string | number) => `${BASE_URL}/api/workspaces/${id}/ask`,
+        conversations: (id: string | number) => `${BASE_URL}/api/workspaces/${id}/conversations`,
+        conversation: (id: string | number, conversationId: string | number) => `${BASE_URL}/api/workspaces/${id}/conversations/${conversationId}`,
     },
 
     // Redeeming an invite is keyed by the emailed token, not by workspace id: the invitee
