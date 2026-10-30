@@ -51,6 +51,7 @@ class WorkspaceInvitationController extends Controller
      * Invite an email address to this workspace.
      *
      * The token is absent from the response on purpose — it belongs in the emailed link only.
+     * Owner-only; `WorkspaceInvitationRequest::authorize()` enforces it before validation runs.
      *
      * @param  WorkspaceInvitationRequest  $request
      * @param  Workspace  $workspace
@@ -58,8 +59,6 @@ class WorkspaceInvitationController extends Controller
      */
     public function store(WorkspaceInvitationRequest $request, Workspace $workspace): JsonResponse
     {
-        $this->authorize('manageMembers', $workspace);
-
         $invitation = $this->inviteToWorkspaceAction->handle(
             auth()->user(),
             $workspace,
