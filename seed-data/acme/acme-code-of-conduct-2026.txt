@@ -1,0 +1,30 @@
+ACME CORPORATION - CODE OF CONDUCT 2026
+Approved by the Board on 15 December 2025.
+
+1. OUR COMMITMENT
+
+Every Acme employee is expected to act honestly, treat colleagues with respect, and follow the law. This Code applies to employees, contractors and interns.
+
+2. RESPECT AT WORK
+
+Acme does not tolerate harassment, bullying or discrimination based on gender, religion, caste, age, disability, sexual orientation or any other protected characteristic. Sexual harassment complaints are handled by the Internal Committee (IC) under the POSH Act, 2013. The IC can be contacted at ic@acme.example and must begin an inquiry within 7 days of receiving a written complaint.
+
+3. GIFTS AND HOSPITALITY
+
+Employees may accept gifts from vendors or clients worth up to 2,000 INR. Any gift above 2,000 INR must be declared to Compliance within 5 working days and may need to be returned. Cash or cash-equivalent gifts (gift cards, vouchers) must never be accepted, whatever their value.
+
+4. CONFLICTS OF INTEREST
+
+Employees must declare any outside employment, directorship, or financial interest in a vendor, client or competitor. Declarations are made to Compliance at the time of joining and whenever circumstances change.
+
+5. CONFIDENTIAL INFORMATION
+
+Customer data, salary information and unreleased product plans are confidential. They must not be shared outside Acme or uploaded to personal or unapproved AI tools.
+
+6. SPEAKING UP
+
+Concerns can be reported to your manager, to Compliance at compliance@acme.example, or anonymously through the Ethics Hotline at 1800-266-0101, which is available 24 hours a day. Acme prohibits retaliation against anyone who reports a concern in good faith.
+
+7. CONSEQUENCES
+
+Breaches of this Code may lead to disciplinary action up to and including termination of employment.
