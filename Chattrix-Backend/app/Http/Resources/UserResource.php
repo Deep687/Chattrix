@@ -24,6 +24,7 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'email_verified_at' => $this->email_verified_at,
             'avatar' => $this->avatar,
+            'can_create_workspaces' => $this->can_create_workspaces,
             'created_at' => $this->created_at,
         ];
     }

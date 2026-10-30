@@ -24,6 +24,15 @@ class User extends Authenticatable implements MustVerifyEmailContract
     use HasApiTokens, HasFactory, MustVerifyEmail, Notifiable;
 
     /**
+     * Mirrors the column default, so a just-created user reads false rather than null.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'can_create_workspaces' => false,
+    ];
+
+    /**
      * Attribute casting definitions.
      *
      * @return array<string, string>
@@ -34,6 +43,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
+            'can_create_workspaces' => 'boolean',
         ];
     }
 

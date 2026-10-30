@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import Dialog from "@/components/ui/Dialog";
 import Icon from "@/components/ui/Icon";
 import TextField from "@/components/ui/TextField";
+import { useAppSelector } from "@/lib/hooks";
 import type { ApiResponse, Workspace } from "@/lib/types";
 
 /** Mirrors `CreateWorkspaceRequest`: `avatar => nullable|image|max:2048` (kilobytes). */
@@ -30,6 +31,7 @@ type WorkspaceFormError = Partial<Record<keyof WorkspaceForm | 'avatar', string[
  */
 export default function CreateWorkspaceDialog() {
     const router = useRouter();
+    const canCreateWorkspaces = useAppSelector((state) => state.user.data?.can_create_workspaces ?? false);
 
     const [errors, setErrors] = useState<WorkspaceFormError>({});
     const [submitError, setSubmitError] = useState('');
@@ -162,6 +164,11 @@ export default function CreateWorkspaceDialog() {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setForm({ ...form, [e.target.name]: e.target.value })
+    }
+
+    // Invited employees join workspaces, never found one. The policy enforces it; this only hides the button.
+    if (!canCreateWorkspaces) {
+        return null;
     }
 
     return (

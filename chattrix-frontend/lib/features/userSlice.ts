@@ -9,6 +9,7 @@ interface User {
   avatar: string;
   bio: string;
   role: string;
+  can_create_workspaces: boolean;
   created_at: string;
 }
 

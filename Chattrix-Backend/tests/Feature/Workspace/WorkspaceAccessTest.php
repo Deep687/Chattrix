@@ -125,7 +125,7 @@ class WorkspaceAccessTest extends TestCase
 
     public function test_creating_a_workspace_enrols_the_creator_as_owner(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->companyRegistrant()->create();
 
         Sanctum::actingAs($user);
 
@@ -145,7 +145,7 @@ class WorkspaceAccessTest extends TestCase
 
     public function test_a_privacy_setting_cannot_be_reintroduced_through_the_api(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->companyRegistrant()->create();
 
         Sanctum::actingAs($user);
 
