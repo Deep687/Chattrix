@@ -68,14 +68,19 @@ class WorkspacePolicy
         return $workspace->hasMember($user);
     }
 
+    /**
+     * Owner-only. Whatever is uploaded becomes what the assistant cites as company policy, so a
+     * member who could upload could publish a fake policy to every colleague. A curator role
+     * (e.g. Editor) is the way to widen this, not membership.
+     */
     public function uploadDocument(User $user, Workspace $workspace): bool
     {
-        return $workspace->hasMember($user);
+        return $workspace->owner_id === $user->id;
     }
 
     public function deleteDocument(User $user, Workspace $workspace): bool
     {
-        return $workspace->hasMember($user);
+        return $workspace->owner_id === $user->id;
     }
 
     /**
