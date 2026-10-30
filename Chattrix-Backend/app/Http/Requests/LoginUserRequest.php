@@ -2,12 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Traits\NormalizesEmail;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Password;
 
 class LoginUserRequest extends FormRequest
 {
+    use NormalizesEmail;
+
     /**
      * Determine if the user is authorized to make this request.
      */
