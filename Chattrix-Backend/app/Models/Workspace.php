@@ -61,6 +61,26 @@ class Workspace extends Model
     }
 
     /**
+     * Get the policy documents uploaded to this workspace.
+     *
+     * @return HasMany<Document, Workspace>
+     */
+    public function documents(): HasMany
+    {
+        return $this->hasMany(Document::class);
+    }
+
+    /**
+     * Every member's chat threads. Read through `ConversationPolicy`, which limits each to its author.
+     *
+     * @return HasMany<Conversation, Workspace>
+     */
+    public function conversations(): HasMany
+    {
+        return $this->hasMany(Conversation::class);
+    }
+
+    /**
      * Determine whether the given user belongs to this workspace.
      *
      * Membership is the primary access control mechanism for workspaces.

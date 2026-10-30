@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkspaceController;
 use App\Http\Controllers\WorkspaceInvitationController;
@@ -83,6 +84,31 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         ->name('workspaces.invitations.store');
 
     Route::apiResource('workspaces', WorkspaceController::class);
+});
+
+/*
+    |--------------------------------------------------------------------------
+    | Documents
+    |--------------------------------------------------------------------------
+    |
+    | Scoped bindings: `{document}` resolves only through `$workspace->documents()`, so another
+    | tenant's document id is a 404 even to a user who passes this workspace's policy.
+    */
+
+Route::middleware(['auth:sanctum', 'verified'])->scopeBindings()->group(function () {
+
+    Route::get('/workspaces/{workspace}/documents', [DocumentController::class, 'index'])
+        ->name('workspaces.documents.index');
+
+    Route::post('/workspaces/{workspace}/documents', [DocumentController::class, 'store'])
+        ->middleware('throttle:uploads')
+        ->name('workspaces.documents.store');
+
+    Route::get('/workspaces/{workspace}/documents/{document}', [DocumentController::class, 'show'])
+        ->name('workspaces.documents.show');
+
+    Route::delete('/workspaces/{workspace}/documents/{document}', [DocumentController::class, 'destroy'])
+        ->name('workspaces.documents.destroy');
 });
 
 /*
