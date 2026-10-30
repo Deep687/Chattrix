@@ -1,5 +1,6 @@
 "use client"
 import { useState, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import Footer from "./Footer";
@@ -14,6 +15,9 @@ type AppShellProps = {
 
 export default function AppShell({ children, workspaces }: AppShellProps) {
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
+    // The chat page fills the viewport edge to edge with its composer pinned to the bottom, so it
+    // opts out of the reading-width column and the footer.
+    const fullBleed = /^\/workspaces\/[^/]+\/chat$/.test(usePathname());
 
     return (
         <WorkspacesContext.Provider value={workspaces}>
@@ -37,11 +41,19 @@ export default function AppShell({ children, workspaces }: AppShellProps) {
                 />
 
                 <div className="flex min-w-0 flex-1 flex-col">
-                    <main id="main-content" className="mx-auto w-full max-w-6xl grow scroll-mt-20 px-4 py-8 sm:px-8 sm:py-10">
-                        {children}
-                    </main>
+                    {fullBleed ? (
+                        <main id="main-content" className="flex h-[calc(100dvh-3.75rem)] min-h-0 flex-col">
+                            {children}
+                        </main>
+                    ) : (
+                        <>
+                            <main id="main-content" className="mx-auto w-full max-w-6xl grow scroll-mt-20 px-4 py-8 sm:px-8 sm:py-10">
+                                {children}
+                            </main>
 
-                    <Footer />
+                            <Footer />
+                        </>
+                    )}
                 </div>
             </div>
         </div>

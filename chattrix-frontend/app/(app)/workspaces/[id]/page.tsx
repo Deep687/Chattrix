@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { API_ROUTES } from "@/lib/api";
 import { fetchFromBackend } from "@/lib/serverFetch";
-import type { ApiResponse, Workspace, WorkspaceInvitation, WorkspaceMember } from "@/lib/types";
+import type { ApiResponse, Workspace, WorkspaceDocument, WorkspaceInvitation, WorkspaceMember } from "@/lib/types";
 import AskPanel from "./AskPanel";
 import DocumentsPanel from "./DocumentsPanel";
 import MembersPanel from "./MembersPanel";
@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 /**
- * One workspace: identity, Ask, documents, roster. The three requests are independent, so they go
+ * One workspace: identity, Ask, documents, roster. The four requests are independent, so they go
  * out together; invitations are fetched even for non-owners (a 403 becomes `null`) so ownership doesn't serialise them.
  *
  * A `null` workspace is a 404 on purpose: in a multi-tenant product a 403 would confirm that another
@@ -42,10 +42,11 @@ export async function generateMetadata({ params }: PageProps) {
 export default async function WorkspacePage({ params }: PageProps) {
     const { id } = await params;
 
-    const [workspaceRes, membersRes, invitationsRes] = await Promise.all([
+    const [workspaceRes, membersRes, invitationsRes, documentsRes] = await Promise.all([
         fetchFromBackend<ApiResponse<Workspace>>(API_ROUTES.workspaces.show(id)),
         fetchFromBackend<ApiResponse<WorkspaceMember[]>>(API_ROUTES.workspaces.members(id)),
         fetchFromBackend<ApiResponse<WorkspaceInvitation[]>>(API_ROUTES.workspaces.invitations(id)),
+        fetchFromBackend<ApiResponse<WorkspaceDocument[]>>(API_ROUTES.workspaces.documents(id)),
     ]);
 
     if (!workspaceRes) {
@@ -57,14 +58,16 @@ export default async function WorkspacePage({ params }: PageProps) {
     const members = membersRes?.data ?? null;
     // Unlike members, empty is the normal case here, so a failure collapses to it.
     const invitations = invitationsRes?.data ?? [];
+    const documents = documentsRes?.data ?? [];
+    const canAsk = documents.some((document) => document.status === "ready");
 
     return (
         // Main column first in the DOM: mobile and screen readers reach Ask before the roster.
         <div className="flex flex-col items-start gap-8 lg:flex-row">
             <div className="w-full min-w-0 flex-1 space-y-8">
                 <WorkspaceHeader workspace={workspace} memberCount={members?.length ?? null} />
-                <AskPanel workspace={workspace} />
-                <DocumentsPanel workspace={workspace} />
+                <AskPanel workspace={workspace} canAsk={canAsk} />
+                <DocumentsPanel workspace={workspace} initialDocuments={documents} />
             </div>
 
             <aside aria-label="Members" className="w-full lg:sticky lg:top-24 lg:w-80 lg:shrink-0">
