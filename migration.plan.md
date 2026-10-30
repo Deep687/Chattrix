@@ -279,9 +279,10 @@ The system prompt MUST instruct the model to:
 - `DocumentResource`, `AskAnswerResource` (answer + citations + usage).
 
 ### Policy — REUSE `WorkspacePolicy` ✅ (abilities added)
-`viewDocuments`, `uploadDocument`, `deleteDocument`, `ask` — all resolve to
-`Workspace::hasMember()`, since every workspace is private and membership is the whole access
-rule. **This is the enforcement point for tenant isolation**, paired with the `workspace_id`
+`viewDocuments` and `ask` resolve to `Workspace::hasMember()`, since every workspace is private
+and membership is the whole access rule. `uploadDocument` / `deleteDocument` are **owner-only**
+(2026-10-30): uploaded text is cited as company policy, so a member who could upload could publish
+a fake policy to every colleague. **This is the enforcement point for tenant isolation**, paired with the `workspace_id`
 filter in the retrieval query; neither layer may assume the other ran.
 
 ### Routes (under `auth:sanctum`)
