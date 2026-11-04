@@ -1,6 +1,9 @@
 <?php
 
+use App\Http\Controllers\AskController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ConversationController;
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkspaceController;
 use App\Http\Controllers\WorkspaceInvitationController;
@@ -15,19 +18,19 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('auth')->group(function () {
 
     Route::post('/register', [AuthController::class, 'register'])
-        ->middleware('throttle:6,1')
+        ->middleware('throttle:auth')
         ->name('auth.register');
 
     Route::post('/login', [AuthController::class, 'login'])
-        ->middleware('throttle:6,1')
+        ->middleware('throttle:auth')
         ->name('auth.login');
 
     Route::post('/logout', [AuthController::class, 'logout'])
-        ->middleware('throttle:6,1')
+        ->middleware('throttle:session-token')
         ->name('auth.logout');
 
     Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
-        ->middleware(['signed', 'throttle:6,1'])
+        ->middleware(['signed', 'throttle:verify-email'])
         ->name('verification.verify');
 
     Route::middleware('auth:sanctum')->group(function () {
@@ -36,7 +39,7 @@ Route::prefix('auth')->group(function () {
         Route::put('/me', [AuthController::class, 'update'])->name('auth.update');
 
         Route::post('/email/resend', [AuthController::class, 'resendVerificationEmail'])
-            ->middleware('throttle:6,1')
+            ->middleware('throttle:verify-resend')
             ->name('verification.resend');
     });
 });
@@ -45,7 +48,7 @@ Route::prefix('auth')->group(function () {
  * Token refresh auth
  */
 Route::post('/auth/refresh', [AuthController::class, 'refresh'])
-    ->name('auth.refresh')->middleware(['throttle:6,1', 'SanctumRefresh']);
+    ->name('auth.refresh')->middleware(['throttle:session-token', 'SanctumRefresh']);
 /*
     |--------------------------------------------------------------------------
     | Workspace invitations
@@ -59,11 +62,11 @@ Route::post('/auth/refresh', [AuthController::class, 'refresh'])
  * a real, verified identity to attach to.
  */
 Route::get('/workspaces/invitations/{token}', [WorkspaceInvitationController::class, 'show'])
-    ->middleware('throttle:10,1')
+    ->middleware('throttle:invitations')
     ->name('workspaces.invitations.show');
 
 Route::post('/workspaces/invitations/{token}/accept', [WorkspaceInvitationController::class, 'accept'])
-    ->middleware(['auth:sanctum', 'verified', 'throttle:10,1'])
+    ->middleware(['auth:sanctum', 'verified', 'throttle:invitations'])
     ->name('workspaces.invitations.accept');
 
 /*
@@ -83,6 +86,44 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         ->name('workspaces.invitations.store');
 
     Route::apiResource('workspaces', WorkspaceController::class);
+});
+
+/*
+    |--------------------------------------------------------------------------
+    | Documents, asking & conversations
+    |--------------------------------------------------------------------------
+    |
+    | Scoped bindings: `{document}` resolves only through `$workspace->documents()`, so another
+    | tenant's document id is a 404 even to a user who passes this workspace's policy.
+    */
+
+Route::middleware(['auth:sanctum', 'verified'])->scopeBindings()->group(function () {
+
+    Route::get('/workspaces/{workspace}/documents', [DocumentController::class, 'index'])
+        ->name('workspaces.documents.index');
+
+    Route::post('/workspaces/{workspace}/documents', [DocumentController::class, 'store'])
+        ->middleware('throttle:uploads')
+        ->name('workspaces.documents.store');
+
+    Route::get('/workspaces/{workspace}/documents/{document}', [DocumentController::class, 'show'])
+        ->name('workspaces.documents.show');
+
+    Route::delete('/workspaces/{workspace}/documents/{document}', [DocumentController::class, 'destroy'])
+        ->name('workspaces.documents.destroy');
+
+    Route::get('/workspaces/{workspace}/conversations', [ConversationController::class, 'index'])
+        ->name('workspaces.conversations.index');
+
+    Route::get('/workspaces/{workspace}/conversations/{conversation}', [ConversationController::class, 'show'])
+        ->name('workspaces.conversations.show');
+
+    Route::delete('/workspaces/{workspace}/conversations/{conversation}', [ConversationController::class, 'destroy'])
+        ->name('workspaces.conversations.destroy');
+
+    Route::post('/workspaces/{workspace}/ask', AskController::class)
+        ->middleware('throttle:ask')
+        ->name('workspaces.ask');
 });
 
 /*

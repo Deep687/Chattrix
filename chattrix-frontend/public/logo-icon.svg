@@ -1,5 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Chattrix">
-  <rect width="512" height="512" rx="112" fill="#0c0808"/>
-  <path d="M357 177 L256 119 L155 177 L155 293 L256 351 L357 293"
-        fill="none" stroke="#dc2626" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect width="512" height="512" rx="112" fill="#4f46e5"/>
+  <text x="216" y="382" text-anchor="middle" font-family="Newsreader, 'Iowan Old Style', Georgia, serif" font-style="italic" font-weight="600" font-size="338" fill="#fdfbf6">C</text>
+  <rect x="355" y="68" width="92" height="92" rx="13" fill="none" stroke="#fdfbf6" stroke-width="6"/>
+  <text x="401" y="134" text-anchor="middle" font-family="'Geist Mono', ui-monospace, monospace" font-weight="600" font-size="62" fill="#fdfbf6">1</text>
 </svg>

@@ -1,7 +1,9 @@
 "use client"
-import { useEffect, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
-import { assetUrl } from "@/lib/api";
+import { useDismiss } from "@/lib/useDismiss";
+import UserAvatar from "./ui/UserAvatar";
+import Icon, { type IconName } from "./ui/Icon";
 
 type User = {
     name: string;
@@ -9,65 +11,64 @@ type User = {
     avatar?: string;
 };
 
+const ITEMS: { label: string; href: string; icon: IconName }[] = [
+    { label: "Workspaces", href: "/workspaces", icon: "workspace" },
+    { label: "Profile", href: "/profile", icon: "user" },
+];
+
 export default function NavUserMenu({ user, onLogout }: { user: User; onLogout: () => void }) {
     const [open, setOpen] = useState(false);
 
-    useEffect(() => {
-        if (!open) return;
+    const root = useRef<HTMLDivElement>(null);
+    const close = useCallback(() => setOpen(false), []);
+    useDismiss(root, open, close);
 
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === "Escape") setOpen(false);
-        };
-
-        document.addEventListener("keydown", handleKeyDown);
-        return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [open]);
+    const item = "flex items-center gap-3 rounded-control px-3 py-2 text-sm text-muted motion-safe:transition hover:bg-surface-muted hover:text-ink";
 
     return (
-        <div className="relative">
+        <div ref={root} className="relative">
             <button
                 type="button"
                 onClick={() => setOpen((o) => !o)}
-                className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-lg hover:bg-white/5 transition-colors"
+                className="flex items-center gap-2 rounded-control py-1 ps-1 pe-2 motion-safe:transition hover:bg-surface-muted"
                 aria-haspopup="menu"
                 aria-expanded={open}
             >
-                <div className="h-7 w-7 rounded-full bg-surface ring-1 ring-white/10 overflow-hidden flex items-center justify-center shrink-0">
-                    {user.avatar ? (
-                        <img src={assetUrl(user.avatar)} alt="" className="h-full w-full object-cover" />
-                    ) : (
-                        <span className="text-xs font-bold text-ink">{user.name.charAt(0).toUpperCase()}</span>
-                    )}
-                </div>
-                <span className="hidden sm:block text-sm text-dim">{user.name}</span>
-                <svg className={`h-3.5 w-3.5 text-fade transition-transform ${open ? "rotate-180" : ""}`} viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
-                </svg>
+                <UserAvatar name={user.name} avatar={user.avatar} size="sm" />
+                <span className="hidden max-w-32 truncate text-sm font-medium text-ink sm:block">{user.name}</span>
+                <Icon name="chevron" className={`size-4 text-muted motion-safe:transition-transform ${open ? "rotate-180" : ""}`} />
             </button>
 
             {open && (
                 <>
-                    <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-                    <div className="absolute right-0 top-full mt-2 w-56 bg-overlay border border-white/5 rounded-xl shadow-2xl z-50 overflow-hidden">
-                        <div className="px-4 py-3 border-b border-white/5">
-                            <p className="text-sm font-medium truncate">{user.name}</p>
-                            <p className="text-xs text-fade truncate">{user.email}</p>
+                    <div role="menu" className="absolute end-0 top-full z-50 mt-2 w-64 origin-top-right rounded-card border border-hairline bg-surface p-1.5 shadow-pop motion-safe:animate-sheet">
+                        <div className="px-3 pt-3 pb-2.5">
+                            <p className="eyebrow">Signed in as</p>
+                            <p className="mt-1.5 truncate font-serif text-lg font-semibold text-ink">{user.name}</p>
+                            <p className="truncate text-xs text-muted">{user.email}</p>
                         </div>
-                        <Link
-                            href="/profile"
-                            onClick={() => setOpen(false)}
-                            className="block px-4 py-2.5 text-sm text-dim hover:text-ink hover:bg-white/5 transition-colors"
-                        >
-                            Profile
-                        </Link>
+
+                        <div className="mx-3 my-1 border-t border-hairline" />
+
+                        {ITEMS.map((entry) => (
+                            <Link key={entry.href} role="menuitem" href={entry.href} onClick={() => setOpen(false)} className={item}>
+                                <Icon name={entry.icon} className="size-4" />
+                                {entry.label}
+                            </Link>
+                        ))}
+
+                        <div className="mx-3 my-1 border-t border-hairline" />
+
                         <button
                             type="button"
+                            role="menuitem"
                             onClick={() => {
                                 setOpen(false);
                                 onLogout();
                             }}
-                            className="w-full text-left px-4 py-2.5 text-sm text-dim hover:text-ink hover:bg-white/5 transition-colors border-t border-white/5"
+                            className={`${item} w-full text-start`}
                         >
+                            <Icon name="logout" className="size-4" />
                             Log out
                         </button>
                     </div>

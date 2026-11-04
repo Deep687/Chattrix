@@ -1,11 +1,16 @@
 "use client";
-import Link from "next/link";
-import { useAppSelector, useAppDispatch } from "@/lib/hooks";
-import { clearUser } from "@/lib/features/userSlice";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import { useAppSelector, useAppDispatch } from "@/lib/hooks";
+import { clearUser } from "@/lib/features/userSlice";
+import { broadcastLogout } from "@/lib/authChannel";
+import AppLogo from "./AppLogo";
 import NavUserMenu from "./NavUserMenu";
+import AppearanceMenu from "./AppearanceControls";
+import { ButtonLink } from "./ui/Button";
+import Icon from "./ui/Icon";
 
+/** The masthead every page shares: wordmark, appearance, account. */
 export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const user = useAppSelector((state) => state.user.data);
   const dispatch = useAppDispatch();
@@ -15,53 +20,46 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
     try {
       await axios.post("/api/auth/logout");
     } finally {
+      // In `finally` so a failed logout call still tells the other tabs the cookie is gone.
+      broadcastLogout();
       dispatch(clearUser());
       router.push("/login");
     }
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/5 bg-surface/90 backdrop-blur">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-
-        <div className="flex items-center gap-3">
-          {user && (
-            <button
-              type="button"
-              onClick={onMenuClick}
-              aria-label="Open menu"
-              className="md:hidden h-8 w-8 -ml-1 flex items-center justify-center rounded-lg text-dim hover:text-ink hover:bg-white/5 transition-colors"
-            >
-              <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-              </svg>
-            </button>
-          )}
-
-          <Link href={user ? "/dashboard" : "/"} className="text-xl font-bold tracking-tight">
-            Chatt<span className="text-brand">rix</span>
-          </Link>
-        </div>
-
-        {user ? (
-          <NavUserMenu user={user} onLogout={handleLogout} />
-        ) : (
-          <div className="flex items-center gap-2">
-            <Link
-              href="/login"
-              className="text-sm border border-white/15 hover:border-white/30 px-4 py-1.5 rounded-lg transition-colors"
-            >
-              Log in
-            </Link>
-            <Link
-              href="/signup"
-              className="text-sm bg-brand hover:bg-red-600 text-white px-4 py-1.5 rounded-lg font-semibold transition-colors"
-            >
-              Sign up
-            </Link>
-          </div>
+    <header className="sticky top-0 z-40 border-b border-hairline bg-canvas/90 backdrop-blur-sm">
+      <div className={`mx-auto flex h-15 w-full items-center gap-3 px-4 sm:px-6 ${onMenuClick ? "" : "max-w-7xl"}`}>
+        {user && onMenuClick && (
+          <button
+            type="button"
+            onClick={onMenuClick}
+            aria-label="Open menu"
+            className="-ms-1 inline-flex size-9 items-center justify-center rounded-control text-muted motion-safe:transition hover:bg-surface-muted hover:text-ink md:hidden"
+          >
+            <Icon name="menu" />
+          </button>
         )}
 
+        <AppLogo href={user ? "/dashboard" : "/"} />
+
+        <span className="eyebrow ms-3 hidden border-s border-hairline ps-3 lg:inline">Internal policy assistant</span>
+
+        <div className="ms-auto flex items-center gap-1.5 sm:gap-2">
+          <AppearanceMenu />
+
+          {user ? (
+            <NavUserMenu user={user} onLogout={handleLogout} />
+          ) : (
+            <>
+              <ButtonLink href="/login" variant="ghost">Log in</ButtonLink>
+              {/* Wrapped: `buttonClass` sets inline-flex, which would override `hidden`. */}
+              <span className="hidden sm:block">
+                <ButtonLink href="/signup">Get started</ButtonLink>
+              </span>
+            </>
+          )}
+        </div>
       </div>
     </header>
   );

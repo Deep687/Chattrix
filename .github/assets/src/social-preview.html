@@ -1,43 +1,73 @@
-<!doctype html><meta charset="utf-8">
+<!doctype html>
+<!--
+  Source for ../social-preview.png (GitHub social preview, 1280×640) and, with ?w=1200&h=630,
+  chattrix-frontend/app/opengraph-image.png. Rendered headless in Chrome; the editorial brand:
+  paper, Newsreader serif, footnote citations.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500;1,6..72,600&family=Geist:wght@400;500&family=Geist+Mono:wght@500;600&display=block" rel="stylesheet">
 <style>
-  *{margin:0;padding:0;box-sizing:border-box}
-  html,body{width:1280px;height:640px;overflow:hidden}
-  body{
-    background:#0c0808;color:#f0eded;
-    font-family:"SF Pro Display",-apple-system,system-ui,"Helvetica Neue",sans-serif;
-    -webkit-font-smoothing:antialiased;
-    position:relative;display:flex;flex-direction:column;
-  }
-  .glow{position:absolute;inset:0;
-    background:radial-gradient(60% 45% at 50% 0%, rgba(220,38,38,.16), rgba(220,38,38,0) 70%);}
-  .bar{position:relative;display:flex;align-items:center;justify-content:space-between;
-    padding:34px 56px;border-bottom:1px solid rgba(255,255,255,.05)}
-  .mark{font-size:27px;font-weight:700;letter-spacing:-.6px}
-  .mark i{color:#dc2626;font-style:normal}
-  .pill{display:flex;align-items:center;gap:9px;border:1px solid rgba(255,255,255,.10);
-    border-radius:999px;padding:7px 15px;font-size:14px;color:#9a8e8e}
-  .dot{width:7px;height:7px;border-radius:999px;background:#ef4444}
-  main{position:relative;flex:1;display:flex;flex-direction:column;
-    align-items:center;justify-content:center;text-align:center;padding:0 56px}
-  h1{font-size:64px;font-weight:700;letter-spacing:-2.4px;line-height:1.09}
-  p{margin-top:20px;font-size:21px;line-height:1.5;color:#9a8e8e;max-width:620px}
-  .cards{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:0 56px 44px}
-  .card{background:#1a1a1a;border:1px solid rgba(255,255,255,.05);border-radius:14px;padding:20px 22px}
-  .sym{color:#ef4444;font-size:20px;line-height:1;display:block;margin-bottom:11px}
-  .t{font-size:16px;font-weight:600;letter-spacing:-.2px}
-  .d{margin-top:5px;font-size:14.5px;line-height:1.45;color:#9a8e8e}
+  :root { --w: 1280px; --h: 640px; --ink: #1c1a16; --muted: #5b574c; --paper: #f5f2ea; --sheet: #fdfbf6; --rule: #e3ddcf; --brand: #4f46e5; --brand-ink: #4338ca; --accent: #f97360; }
+  * { box-sizing: border-box; margin: 0; }
+  body { width: var(--w); height: var(--h); background: var(--paper); color: var(--ink); font-family: Geist, system-ui, sans-serif; overflow: hidden; position: relative; }
+  body::before { content: ""; position: absolute; inset: 0; opacity: .06; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.45 0 0 0 0 0.35 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  .frame { position: absolute; inset: 44px 56px; display: flex; flex-direction: column; }
+  .mast { display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 14px; border-bottom: 1px solid var(--ink); }
+  .word { font-family: Newsreader, serif; font-weight: 600; font-size: 34px; letter-spacing: -.01em; }
+  .fn { display: inline-flex; align-items: center; justify-content: center; min-width: 19px; height: 19px; padding: 0 4px; margin-left: 3px; vertical-align: super; font: 600 11px 'Geist Mono', monospace; color: var(--brand-ink); border: 1px solid rgba(79,70,229,.45); border-radius: 3px; }
+  .eyebrow { font: 500 13px 'Geist Mono', monospace; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+  .body { flex: 1; padding: 30px 0 26px; display: grid; grid-template-columns: 1.08fr .92fr; gap: 52px; align-items: center; }
+  h1 { font-family: Newsreader, serif; font-weight: 600; font-size: 68px; line-height: 1.02; letter-spacing: -.02em; }
+  h1 em { color: var(--brand); font-weight: 500; }
+  .lead { margin-top: 22px; font-size: 21px; line-height: 1.45; color: var(--muted); max-width: 30ch; }
+  .sheet { position: relative; background: var(--sheet); border: 1px solid var(--rule); border-radius: 7px; padding: 34px 30px 26px; box-shadow: 0 1px 0 var(--rule), 6px 6px 0 -1px var(--sheet), 6px 6px 0 0 var(--rule), 0 24px 40px -28px rgba(28,26,22,.45); }
+  .sheet::before { content: ""; position: absolute; left: 30px; right: 30px; top: 14px; border-top: 3px double var(--ink); }
+  .q { margin-top: 16px; font-size: 16px; color: var(--muted); }
+  .q b, .a b.l { font: 600 12px 'Geist Mono', monospace; color: var(--brand-ink); margin-right: 8px; }
+  .a { margin-top: 10px; font-family: Newsreader, serif; font-size: 25px; line-height: 1.3; }
+  .a strong { font-weight: 600; }
+  .notes { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--ink); width: 34%; }
+  .note { margin-top: 10px; font: 500 12.5px 'Geist Mono', monospace; color: var(--muted); white-space: nowrap; }
+  .note i { font-family: Newsreader, serif; font-size: 14px; letter-spacing: 0; }
+  .idk { margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--rule); font-family: Newsreader, serif; font-style: italic; font-size: 19px; }
+  .foot { display: flex; justify-content: space-between; align-items: baseline; padding-top: 14px; border-top: 3px double var(--ink); }
+  .foot .claims { font-family: Newsreader, serif; font-style: italic; font-size: 19px; color: var(--muted); }
 </style>
-<div class="glow"></div>
-<div class="bar">
-  <div class="mark">Chatt<i>rix</i></div>
-  <div class="pill"><span class="dot"></span>Early access</div>
+</head>
+<body>
+<script>
+  const q = new URLSearchParams(location.search);
+  if (q.get("w")) { document.documentElement.style.setProperty("--w", q.get("w") + "px"); document.documentElement.style.setProperty("--h", q.get("h") + "px"); }
+</script>
+<div class="frame">
+  <div class="mast">
+    <span class="word">Chattrix<span class="fn">1</span></span>
+    <span class="eyebrow">Internal policy assistant</span>
+  </div>
+
+  <div class="body">
+    <div>
+      <h1>Your company's policies, answered <em>with sources.</em></h1>
+      <p class="lead">Employees ask in plain English. Every answer footnotes the exact passage it came from.</p>
+    </div>
+
+    <div class="sheet">
+      <p class="eyebrow">Exhibit A · Acme workspace</p>
+      <p class="q"><b>Q.</b>How many casual leaves do I get?</p>
+      <p class="a"><b class="l">A.</b>You get <strong>12 casual leaves</strong> per calendar year<span class="fn">1</span>, credited each January<span class="fn">2</span>.</p>
+      <div class="notes"></div>
+      <p class="note">1 acme-hr-handbook.pdf · p.4 — <i>"…twelve (12) days…"</i></p>
+      <p class="note">2 acme-hr-handbook.pdf · p.5</p>
+      <p class="idk">“I don't know based on Acme's documents.”</p>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span class="claims">Workspace-isolated retrieval · Cited answers · Honest when it doesn't know</span>
+    <span class="eyebrow">Next.js · Laravel · pgvector</span>
+  </div>
 </div>
-<main>
-  <h1>Your team&rsquo;s knowledge,<br>instantly answerable.</h1>
-  <p>Ask your company&rsquo;s documents in plain English. Every answer comes back cited.</p>
-</main>
-<div class="cards">
-  <div class="card"><span class="sym">&#11041;</span><div class="t">Workspaces</div><div class="d">One private space per team.</div></div>
-  <div class="card"><span class="sym">&#9678;</span><div class="t">Your documents</div><div class="d">PDFs and notes, per workspace.</div></div>
-  <div class="card"><span class="sym">&#10022;</span><div class="t">Ask anything</div><div class="d">Grounded answers with citations.</div></div>
-</div>
+</body>
+</html>

@@ -50,8 +50,8 @@ return [
     'gemini' => [
         'key' => env('GEMINI_API_KEY'),
         'base_url' => env('GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com/v1beta'),
-        'chat_model' => env('GEMINI_CHAT_MODEL', 'gemini-2.0-flash'),
-        'embed_model' => env('GEMINI_EMBED_MODEL', 'text-embedding-004'),
+        'chat_model' => env('GEMINI_CHAT_MODEL', 'gemini-3.5-flash-lite'),
+        'embed_model' => env('GEMINI_EMBED_MODEL', 'gemini-embedding-001'),
         'embed_dimensions' => (int) env('GEMINI_EMBED_DIMENSIONS', 768),
     ],
 

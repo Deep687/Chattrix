@@ -1,7 +1,10 @@
 "use client"
 import { useState, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
+import Footer from "./Footer";
+import { WorkspacesContext } from "./WorkspacesContext";
 import type { Workspace } from "@/lib/types";
 
 type AppShellProps = {
@@ -12,23 +15,48 @@ type AppShellProps = {
 
 export default function AppShell({ children, workspaces }: AppShellProps) {
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
+    // The chat page fills the viewport edge to edge with its composer pinned to the bottom, so it
+    // opts out of the reading-width column and the footer.
+    const fullBleed = /^\/workspaces\/[^/]+\/chat$/.test(usePathname());
 
     return (
-        <div className="min-h-screen bg-surface text-ink">
+        <WorkspacesContext.Provider value={workspaces}>
+        <div className="flex min-h-dvh flex-col text-ink">
+            <a
+                href="#main-content"
+                className="sr-only rounded-control bg-brand px-4 py-2 text-sm font-semibold text-on-brand focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-50"
+            >
+                Skip to content
+            </a>
+
             <Navbar onMenuClick={() => setMobileNavOpen(true)} />
 
-            {/* 7xl rather than 6xl so the workspace page can afford a third column: nav + main
-                + members rail. At 6xl the middle column fell under ~540px, too narrow for the
-                Ask conversation that is the point of the page. */}
-            <div className="max-w-7xl mx-auto p-8 flex gap-6">
+            {/* Sidebar flush to the edge; content centred in what's left, 6xl so the workspace
+                page fits main + members rail without squeezing Ask under ~540px. */}
+            <div className="flex grow">
                 <Sidebar
                     workspaces={workspaces}
                     mobileOpen={mobileNavOpen}
                     onClose={() => setMobileNavOpen(false)}
                 />
 
-                <main className="flex-1 min-w-0">{children}</main>
+                <div className="flex min-w-0 flex-1 flex-col">
+                    {fullBleed ? (
+                        <main id="main-content" className="flex h-[calc(100dvh-3.75rem)] min-h-0 flex-col">
+                            {children}
+                        </main>
+                    ) : (
+                        <>
+                            <main id="main-content" className="mx-auto w-full max-w-6xl grow scroll-mt-20 px-4 py-8 sm:px-8 sm:py-10">
+                                {children}
+                            </main>
+
+                            <Footer />
+                        </>
+                    )}
+                </div>
             </div>
         </div>
+        </WorkspacesContext.Provider>
     );
 }

@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="x-apple-disable-message-reformatting">
-    <meta name="color-scheme" content="dark">
-    <meta name="supported-color-schemes" content="dark">
+    <meta name="color-scheme" content="light">
+    <meta name="supported-color-schemes" content="light">
     <title>Verify your email</title>
     <!--[if mso]>
     <style>
@@ -13,32 +13,45 @@
     </style>
     <![endif]-->
 </head>
-<body style="margin:0; padding:0; width:100%; background-color:#f5f3f3;">
-    <div style="display:none; font-size:1px; color:#f5f3f3; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden;">
+<body style="margin:0; padding:0; width:100%; background-color:#f5f2ea;">
+    <div style="display:none; font-size:1px; color:#f5f2ea; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden;">
         Confirm your email address to finish setting up your Chattrix account.
     </div>
 
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f5f3f3" style="background-color:#f5f3f3;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f5f2ea" style="background-color:#f5f2ea;">
         <tr>
-            <td align="center" style="padding:40px 16px; background-color:#f5f3f3;">
+            <td align="center" style="padding:40px 16px; background-color:#f5f2ea;">
 
-                <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" bgcolor="#1a1a1a" style="width:600px; max-width:600px; background-color:#1a1a1a; border-radius:12px; border:1px solid #2a2424;">
-
+                <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" bgcolor="#fdfbf6" style="width:100%; max-width:600px; background-color:#fdfbf6; border:1px solid #e3ddcf; border-radius:7px;">
                     <tr>
-                        <td style="padding:32px 40px 0 40px; font-family:Arial,Helvetica,sans-serif; font-size:18px; font-weight:bold; color:#f0eded; letter-spacing:-0.2px;">
-                            Chat<span style="color:#dc2626;">trix</span>
+                        <td style="padding:20px 40px 0 40px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                                <tr><td style="border-top:3px double #1c1a16; font-size:0; line-height:0;">&nbsp;</td></tr>
+                            </table>
                         </td>
                     </tr>
 
                     <tr>
-                        <td style="padding:24px 40px 0 40px; font-family:Arial,Helvetica,sans-serif; font-size:24px; line-height:32px; font-weight:bold; color:#f0eded;">
+                        <td style="padding:20px 40px 0 40px; font-family:Georgia,'Times New Roman',serif; font-size:24px; font-weight:600; color:#1c1a16; letter-spacing:-0.3px;">
+                            Chattrix<span style="display:inline-block; margin-left:3px; padding:0 4px; border:1px solid #a9a4ee; border-radius:3px; font-family:'SFMono-Regular',Menlo,Consolas,monospace; font-size:10px; line-height:14px; font-weight:600; color:#4338ca; vertical-align:super;">1</span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding:28px 40px 0 40px; font-family:'SFMono-Regular',Menlo,Consolas,monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#5b574c;">
+                            Verify email
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding:8px 40px 0 40px; font-family:Georgia,'Times New Roman',serif; font-size:26px; line-height:32px; font-weight:600; color:#1c1a16;">
                             Verify your email address
                         </td>
                     </tr>
 
                     <tr>
-                        <td style="padding:16px 40px 0 40px; font-family:Arial,Helvetica,sans-serif; font-size:16px; line-height:24px; color:#9a8e8e;">
-                            Hi <span style="color:#f0eded; font-weight:bold;">{{ $name }}</span>, please confirm this is your
+                        <td style="padding:16px 40px 0 40px; font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif; font-size:16px; line-height:24px; color:#5b574c;">
+                            Hi <span style="color:#1c1a16; font-weight:600;">{{ $name }}</span>, please confirm this is your
                             email address to finish setting up your Chattrix account.
                         </td>
                     </tr>
@@ -47,9 +60,9 @@
                         <td style="padding:28px 40px 0 40px;">
                             <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                                 <tr>
-                                    <td align="center" bgcolor="#dc2626" style="background-color:#dc2626; border-radius:8px;">
+                                    <td align="center" bgcolor="#4f46e5" style="background-color:#4f46e5; border-radius:5px;">
                                         <a href="{{ $url }}"
-                                           style="display:inline-block; padding:14px 28px; font-family:Arial,Helvetica,sans-serif; font-size:16px; font-weight:bold; line-height:20px; color:#ffffff; text-decoration:none; border-radius:8px;">
+                                           style="display:inline-block; padding:13px 26px; font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif; font-size:16px; font-weight:600; line-height:20px; color:#ffffff; text-decoration:none; border-radius:5px;">
                                             Verify email address
                                         </a>
                                     </td>
@@ -59,7 +72,7 @@
                     </tr>
 
                     <tr>
-                        <td style="padding:16px 40px 0 40px; font-family:Arial,Helvetica,sans-serif; font-size:14px; line-height:20px; color:#6b5f5f;">
+                        <td style="padding:16px 40px 0 40px; font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif; font-size:14px; line-height:20px; color:#5b574c;">
                             This link expires in {{ config('auth.verification.expire', 60) }} minutes.
                         </td>
                     </tr>
@@ -67,24 +80,23 @@
                     <tr>
                         <td style="padding:28px 40px 0 40px;">
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-                                <tr><td height="1" bgcolor="#2a2424" style="background-color:#2a2424; font-size:0; line-height:0;">&nbsp;</td></tr>
+                                <tr><td height="1" bgcolor="#e3ddcf" style="background-color:#e3ddcf; font-size:0; line-height:0;">&nbsp;</td></tr>
                             </table>
                         </td>
                     </tr>
 
                     <tr>
-                        <td style="padding:20px 40px 32px 40px; font-family:Arial,Helvetica,sans-serif; font-size:13px; line-height:20px; color:#6b5f5f;">
+                        <td style="padding:20px 40px 32px 40px; font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif; font-size:13px; line-height:20px; color:#5b574c;">
                             If the button doesn't work, copy and paste this link into your browser:
                             <br>
-                            <a href="{{ $url }}" style="color:#dc2626; text-decoration:underline; word-break:break-all;">{{ $url }}</a>
+                            <a href="{{ $url }}" style="color:#4338ca; text-decoration:underline; word-break:break-all;">{{ $url }}</a>
                         </td>
                     </tr>
-
                 </table>
 
-                <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px; max-width:600px;">
+                <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%; max-width:600px;">
                     <tr>
-                        <td style="padding:20px 40px; text-align:center; font-family:Arial,Helvetica,sans-serif; font-size:12px; line-height:18px; color:#6b5f5f;">
+                        <td style="padding:20px 40px; text-align:center; font-family:Georgia,'Times New Roman',serif; font-style:italic; font-size:14px; line-height:20px; color:#5b574c;">
                             If you didn't create a Chattrix account, you can safely ignore this email.
                         </td>
                     </tr>

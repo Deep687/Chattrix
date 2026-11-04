@@ -1,0 +1,61 @@
+name: Backend tests
+
+on:
+  push:
+    paths: ['Chattrix-Backend/**', 'seed-data/**', '.github/workflows/backend-tests.yml']
+  pull_request:
+    paths: ['Chattrix-Backend/**', 'seed-data/**', '.github/workflows/backend-tests.yml']
+
+jobs:
+  phpunit:
+    runs-on: ubuntu-latest
+
+    # Real Postgres + pgvector, not SQLite: the isolation suite asserts on the HNSW index plan
+    # and needs hnsw.iterative_scan (pgvector 0.8+).
+    services:
+      postgres:
+        image: pgvector/pgvector:0.8.0-pg17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: chattrix_testing
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    defaults:
+      run:
+        working-directory: Chattrix-Backend
+
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_pgsql, mbstring
+          coverage: none
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer
+          key: composer-${{ hashFiles('Chattrix-Backend/composer.lock') }}
+
+      - run: composer install --no-interaction --prefer-dist --no-progress
+
+      - run: cp .env.example .env && php artisan key:generate
+
+      - name: Isolation suite (M3)
+        run: php artisan test --compact tests/Feature/Isolation
+
+      - name: Full suite
+        run: php artisan test --compact

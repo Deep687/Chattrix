@@ -28,6 +28,7 @@ class VerifyEmailMailable extends Mailable
     {
         return new Content(
             view: 'emails.verify-email',
+            text: 'emails.verify-email-text',
         );
     }
 }

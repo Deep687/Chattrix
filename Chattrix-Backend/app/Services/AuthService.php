@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Actions\Workspace\CreateWorkspaceAction;
 use App\Enums\EmailVerificationOutcome;
 use App\Models\RefreshToken;
 use App\Models\User;
@@ -19,20 +20,47 @@ use Laravel\Sanctum\PersonalAccessToken;
 class AuthService
 {
     /**
+     * @param  CreateWorkspaceAction  $createWorkspaceAction
+     */
+    public function __construct(
+        private CreateWorkspaceAction $createWorkspaceAction
+    ) {}
+
+    /**
      * Create a new user record in the database.
      *
+     * A `company_name` marks a company registration: the user may create workspaces and gets the
+     * first one now. Without it the account is an invitee's, which joins workspaces but founds none.
+     *
      * @param  array  $validatedData  The validated data from the registration request.
+     * @param  string|null  $next  Relative path the verification link should return the user to.
      * @return User The newly created user.
      */
-    public function register(array $validatedData): User
+    public function register(array $validatedData, ?string $next = null): User
     {
-        $user = User::create([
-            'name' => $validatedData['name'],
-            'email' => $validatedData['email'],
-            'password' => Hash::make($validatedData['password']),
-        ]);
+        $companyName = $validatedData['company_name'] ?? null;
+
+        $user = DB::transaction(function () use ($validatedData, $companyName) {
+            $user = User::create([
+                'name' => $validatedData['name'],
+                'email' => $validatedData['email'],
+                'password' => Hash::make($validatedData['password']),
+            ]);
+
+            if ($companyName) {
+                // Not fillable, so a plain signup cannot grant itself the ability.
+                $user->forceFill(['can_create_workspaces' => true])->save();
+
+                $this->createWorkspaceAction->handle(['name' => $companyName], $user->id);
+            }
+
+            return $user;
+        });
 
         event(new Registered($user));
+
+        // Sent here rather than from the Registered listener so the link can carry `next`.
+        $user->sendEmailVerificationNotification($next);
 
         return $user;
     }
@@ -165,15 +193,16 @@ class AuthService
      * Resend the email verification notification to a user.
      *
      * @param  User  $user  The currently authenticated user.
+     * @param  string|null  $next  Relative path the verification link should return the user to.
      * @return bool Whether a notification was sent, or false when the email was already verified.
      */
-    public function resendVerificationEmail(User $user): bool
+    public function resendVerificationEmail(User $user, ?string $next = null): bool
     {
         if ($user->hasVerifiedEmail()) {
             return false;
         }
 
-        $user->sendEmailVerificationNotification();
+        $user->sendEmailVerificationNotification($next);
 
         return true;
     }
