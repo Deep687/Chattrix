@@ -212,15 +212,23 @@ class RagService
     private function userPrompt(Collection $chunks, string $question): string
     {
         $sources = $chunks->values()->map(function (DocumentChunk $chunk, int $i) {
-            // A document containing "</source>" must not be able to close its own block early.
-            $content = str_ireplace(['<source', '</source'], ['‹source', '‹/source'], $chunk->content);
+            $content = $this->neutralise($chunk->content);
             $page = $chunk->page ? " page=\"{$chunk->page}\"" : '';
             $filename = e($chunk->document->filename);
 
             return '<source id="'.($i + 1)."\" document=\"{$filename}\"{$page}>\n{$content}\n</source>";
         })->implode("\n\n");
 
-        return "<sources>\n{$sources}\n</sources>\n\nQuestion: {$question}";
+        return "<sources>\n{$sources}\n</sources>\n\nQuestion: {$this->neutralise($question)}";
+    }
+
+    /**
+     * Defuses source tags in untrusted text, so neither a document nor a question can close a
+     * block early or forge a source the answer would then cite.
+     */
+    private function neutralise(string $text): string
+    {
+        return str_ireplace(['<source', '</source'], ['‹source', '‹/source'], $text);
     }
 
     /**
