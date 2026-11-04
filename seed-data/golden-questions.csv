@@ -1,0 +1,13 @@
+asked_by,question,expect,fact
+acme,What are the standard payment terms for vendors?,dont_know,net 45 days
+acme,How long must passwords be?,dont_know,14 characters
+acme,What is the security hotline number?,dont_know,+1-555-0142
+acme,Who must approve high-tier vendors?,dont_know,CISO
+globex,How many days of annual leave do I get?,dont_know,20 days of paid annual leave
+globex,What is the hotel limit per night in metro cities?,dont_know,"7,000 INR"
+globex,What is the ethics hotline number?,dont_know,1800-266-0101
+globex,How many days per week can I work from home?,dont_know,2 days per week
+acme,How many days of annual leave do I get?,answer,20 days
+acme,What is the hotel limit per night in metro cities?,answer,"7,000 INR"
+globex,How long must passwords be?,answer,14 characters
+globex,What are the standard payment terms for vendors?,answer,net 45 days
