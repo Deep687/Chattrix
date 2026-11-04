@@ -34,3 +34,21 @@ typescript-masterclass.html
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Local-only: personal notes, plans and AI-tool config. Kept on disk, never pushed.
+/CLAUDE.md
+/migration.plan.md
+/plan.html
+/docfordeep.html
+/code_review.md
+/DESIGN.md
+/docs/
+/learning-docs-system/
+**/AGENTS.md
+**/CLAUDE.md
+Chattrix-Backend/.agents/
+Chattrix-Backend/.claude/
+Chattrix-Backend/.cursor/
+Chattrix-Backend/.codex/
+Chattrix-Backend/.mcp.json
+Chattrix-Backend/boost.json

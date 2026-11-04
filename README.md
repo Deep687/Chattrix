@@ -51,7 +51,7 @@ Retrieval is tenant-isolated by design: workspace membership gates every read, s
 
 ### Planned
 
-The RAG layer is not built yet. It is tracked in [`migration.plan.md`](migration.plan.md):
+The RAG layer is not built yet.:
 
 - **M1** — document upload → chunking → Gemini embeddings, stored in PostgreSQL
 - **M2** — `RagService` + ask endpoint returning grounded, cited answers
@@ -103,7 +103,7 @@ PostgreSQL (pgvector-ready for RAG)
 
 The frontend intentionally acts as a small BFF layer. Browser JavaScript never receives raw access or refresh tokens — the Next.js route handlers talk to Laravel, then store tokens as HttpOnly cookies only the server can read.
 
-The planned RAG layer adds two outbound calls from Laravel — embeddings and generation — via **Google Gemini** (free tier), kept provider-agnostic so a different LLM can be swapped in later. For the detailed auth design, see [docs/AUTH_BFF.md](docs/AUTH_BFF.md).
+The planned RAG layer adds two outbound calls from Laravel — embeddings and generation — via **Google Gemini** (free tier), kept provider-agnostic so a different LLM can be swapped in later.
 
 ## Tech Stack
 
@@ -127,11 +127,6 @@ The planned RAG layer adds two outbound calls from Laravel — embeddings and ge
 +-- Chattrix-Backend/       Laravel API (auth, workspaces, invitations)
 +-- chattrix-frontend/      Next.js frontend and BFF route handlers
 +-- .github/assets/         README banner, screenshots, architecture diagram
-+-- docs/                   Project documentation
-+-- plan.html               RAG project plan + learning guide (open in a browser)
-+-- migration.plan.md       File-by-file plan for building the RAG feature
-+-- DESIGN.md               Product and UI direction
-+-- ROADMAP.md              Learning and delivery roadmap
 +-- package.json            Root Yarn workspace scripts
 +-- yarn.lock
 ```
@@ -277,7 +272,7 @@ All auth routes are throttled at 6 requests/minute.
 | GET | `/api/workspaces/invitations/{token}` | Public | Preview an invitation before signing in |
 | POST | `/api/workspaces/invitations/{token}/accept` | Sanctum, verified | Accept and join the workspace |
 
-### Documents & Ask (planned — see `migration.plan.md`)
+### Documents & Ask
 
 | Method | Endpoint | Purpose |
 | --- | --- | --- |
@@ -299,14 +294,6 @@ Laravel stores access tokens through Sanctum's `personal_access_tokens` table. R
 - Auth routes are rate limited (6/min); invitation preview is limited to 10/min.
 - Workspace reads are gated on `workspace_user` membership — never leak one workspace's data into another.
 - Use Secure and SameSite cookies in production, and remove any debug or token logging before deploying.
-
-## Documentation
-
-- [RAG Project Plan & Learning Guide](plan.html)
-- [Migration Plan (Chattrix → RAG)](migration.plan.md)
-- [Auth, Refresh Tokens, and Next.js BFF](docs/AUTH_BFF.md)
-- [Design Document](DESIGN.md)
-- [Roadmap](ROADMAP.md)
 
 ## License
 
