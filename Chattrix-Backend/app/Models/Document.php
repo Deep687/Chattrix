@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DocumentAudience;
 use App\Enums\DocumentStatus;
 use Database\Factories\DocumentFactory;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -27,18 +28,20 @@ class Document extends Model
         'filename',
         'path',
         'mime_type',
+        'audience',
         'status',
         'error',
         'chunk_count',
     ];
 
     /**
-     * Mirrors the column default, so a just-created document reads Pending rather than null.
+     * Mirrors the column defaults, so a just-created document reads Pending and Everyone rather than null.
      *
      * @var array<string, mixed>
      */
     protected $attributes = [
         'status' => 'pending',
+        'audience' => 'everyone',
     ];
 
     /**
@@ -50,6 +53,7 @@ class Document extends Model
     {
         return [
             'status' => DocumentStatus::class,
+            'audience' => DocumentAudience::class,
             'chunk_count' => 'integer',
         ];
     }
@@ -85,8 +89,8 @@ class Document extends Model
     }
 
     /**
-     * Hide failed uploads from everyone except the uploader and the owner: they are the only ones who
-     * can act on the error, and to other employees a broken file is just noise.
+     * Documents outside the user's audience are hidden outright. Failed uploads are also hidden from
+     * everyone but the uploader and the owner: they are the only ones who can act on the error.
      *
      * @param  Builder<Document>  $query
      * @param  User  $user
@@ -96,6 +100,8 @@ class Document extends Model
     #[Scope]
     protected function visibleTo(Builder $query, User $user, Workspace $workspace): void
     {
+        $query->whereIn('audience', $workspace->roleOf($user)->visibleAudiences());
+
         if ($workspace->owner_id === $user->id) {
             return;
         }

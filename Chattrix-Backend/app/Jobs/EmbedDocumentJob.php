@@ -120,7 +120,8 @@ class EmbedDocumentJob implements ShouldQueue
     private function store(array $chunks, array $vectors): void
     {
         DB::transaction(function () use ($chunks, $vectors) {
-            // The lock serialises against a concurrent delete; a vanished row means stop quietly.
+            // The lock serialises against a concurrent delete (vanished row: stop quietly) or audience
+            // change, so the audience stamped below is current, not the one the job was queued with.
             $document = Document::whereKey($this->document->id)->lockForUpdate()->first();
 
             if (! $document) {
@@ -137,6 +138,7 @@ class EmbedDocumentJob implements ShouldQueue
                     ...$chunk,
                     'document_id' => $document->id,
                     'workspace_id' => $document->workspace_id,
+                    'audience' => $document->audience->value,
                     'chunk_index' => $index,
                     'embedding' => '['.implode(',', $vectors[$index]).']',
                     'created_at' => $now,

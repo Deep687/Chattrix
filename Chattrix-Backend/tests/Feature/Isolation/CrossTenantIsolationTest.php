@@ -180,7 +180,7 @@ class CrossTenantIsolationTest extends TestCase
         $this->chunks($other, 'other.pdf', ['Salary bands: engineers earn 200k.']);
         $this->chunks($asker, 'own.pdf', ['Annual leave is 20 days.']);
 
-        $chunks = app(RagService::class)->retrieve($asker, $this->ai->embedQuery('salary'));
+        $chunks = app(RagService::class)->retrieve($asker, $asker->owner, $this->ai->embedQuery('salary'));
 
         $this->assertNotEmpty($chunks);
         $this->assertSame([$asker->id], $chunks->pluck('workspace_id')->unique()->values()->all());
@@ -258,6 +258,7 @@ class CrossTenantIsolationTest extends TestCase
             'name' => 'Renamed',
             'email' => 'someone@example.com',
             'question' => 'What are the salary bands?',
+            'audience' => 'owners',
             'file' => UploadedFile::fake()->createWithContent('x.txt', 'x'),
         ]);
     }

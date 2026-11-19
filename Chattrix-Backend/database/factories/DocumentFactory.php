@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\DocumentAudience;
 use App\Enums\DocumentStatus;
 use App\Models\Document;
 use App\Models\User;
@@ -28,6 +29,7 @@ class DocumentFactory extends Factory
             'filename' => $filename,
             'path' => 'documents/'.$filename,
             'mime_type' => 'application/pdf',
+            'audience' => DocumentAudience::Everyone,
             'status' => DocumentStatus::Pending,
             'error' => null,
             'chunk_count' => 0,
@@ -40,6 +42,14 @@ class DocumentFactory extends Factory
     public function ready(): static
     {
         return $this->state(['status' => DocumentStatus::Ready]);
+    }
+
+    /**
+     * A document only workspace owners may retrieve.
+     */
+    public function ownersOnly(): static
+    {
+        return $this->state(['audience' => DocumentAudience::Owners]);
     }
 
     /**

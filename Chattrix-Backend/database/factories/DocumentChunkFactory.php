@@ -14,8 +14,8 @@ class DocumentChunkFactory extends Factory
     /**
      * Define the model's default state.
      *
-     * `workspace_id` is taken from the document, never generated: a chunk whose tenant differs
-     * from its document's would make isolation tests pass for the wrong reason.
+     * `workspace_id` and `audience` are taken from the document, never generated: a chunk that
+     * disagrees with its document would make isolation tests pass for the wrong reason.
      *
      * @return array<string, mixed>
      */
@@ -26,6 +26,7 @@ class DocumentChunkFactory extends Factory
         return [
             'document_id' => Document::factory(),
             'workspace_id' => fn (array $attributes) => Document::find($attributes['document_id'])->workspace_id,
+            'audience' => fn (array $attributes) => Document::find($attributes['document_id'])->audience,
             'chunk_index' => 0,
             'content' => $content,
             'embedding' => array_map(

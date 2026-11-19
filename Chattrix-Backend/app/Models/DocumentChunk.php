@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DocumentAudience;
 use Database\Factories\DocumentChunkFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -20,6 +21,7 @@ class DocumentChunk extends Model
     protected $fillable = [
         'document_id',
         'workspace_id',
+        'audience',
         'chunk_index',
         'content',
         'embedding',
@@ -49,6 +51,7 @@ class DocumentChunk extends Model
     {
         return [
             'embedding' => 'array',
+            'audience' => DocumentAudience::class,
             'chunk_index' => 'integer',
             'page' => 'integer',
             'token_count' => 'integer',

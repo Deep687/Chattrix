@@ -8,7 +8,7 @@ import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
 import Icon from "@/components/ui/Icon";
 import { Button } from "@/components/ui/Button";
-import type { ApiResponse, DocumentStatus, Workspace, WorkspaceDocument } from "@/lib/types";
+import type { ApiResponse, DocumentAudience, DocumentStatus, Workspace, WorkspaceDocument } from "@/lib/types";
 
 /** Mirrors `UploadDocumentRequest`: pdf/txt/md, `max:10240` (kilobytes). */
 const MAX_BYTES = 10 * 1024 * 1024;
@@ -23,7 +23,7 @@ const STATUS: Record<DocumentStatus, { label: string; tone: "muted" | "accent" |
 };
 
 /**
- * Upload, list and delete. Only the owner curates documents (the backend enforces it; this only
+ * Upload, list, restrict and delete. Only the owner curates documents (the backend enforces it; this only
  * hides the controls), since whatever is uploaded is cited as company policy. Embedding runs in a queue, so the list polls while anything is still
  * queued or indexing, and refreshes the page once a document turns ready: that is what unlocks Ask,
  * which reads its state from the server render.
@@ -35,6 +35,8 @@ export default function DocumentsPanel({ workspace, initialDocuments }: { worksp
     const [documents, setDocuments] = useState<WorkspaceDocument[]>(initialDocuments);
     const [uploading, setUploading] = useState(false);
     const [deletingId, setDeletingId] = useState<number | null>(null);
+    const [updatingId, setUpdatingId] = useState<number | null>(null);
+    const [uploadAudience, setUploadAudience] = useState<DocumentAudience>("everyone");
     const [error, setError] = useState("");
 
     const canManage = workspace.is_owner;
@@ -83,6 +85,7 @@ export default function DocumentsPanel({ workspace, initialDocuments }: { worksp
 
         const body = new FormData();
         body.append("file", file);
+        body.append("audience", uploadAudience);
         setUploading(true);
 
         try {
@@ -92,6 +95,22 @@ export default function DocumentsPanel({ workspace, initialDocuments }: { worksp
             setError(uploadError(err));
         } finally {
             setUploading(false);
+        }
+    };
+
+    const handleAudience = async (document: WorkspaceDocument) => {
+        const audience: DocumentAudience = document.audience === "owners" ? "everyone" : "owners";
+
+        setError("");
+        setUpdatingId(document.id);
+
+        try {
+            const { data } = await axios.patch<ApiResponse<WorkspaceDocument>>(`/api/workspaces/${workspace.id}/documents/${document.id}`, { audience });
+            setDocuments((current) => current.map((d) => (d.id === document.id ? data.data : d)));
+        } catch {
+            setError(`Could not change who can see “${document.filename}”.`);
+        } finally {
+            setUpdatingId(null);
         }
     };
 
@@ -128,13 +147,23 @@ export default function DocumentsPanel({ workspace, initialDocuments }: { worksp
                 </div>
 
                 {canManage && (
-                    <>
+                    <div className="flex items-center gap-2">
+                        <label className="sr-only" htmlFor="upload-audience">Who can see the next upload</label>
+                        <select
+                            id="upload-audience"
+                            value={uploadAudience}
+                            onChange={(e) => setUploadAudience(e.target.value === "owners" ? "owners" : "everyone")}
+                            className="h-9 rounded-control border border-hairline bg-surface px-2 text-sm text-ink"
+                        >
+                            <option value="everyone">Everyone</option>
+                            <option value="owners">Owners only</option>
+                        </select>
                         <input ref={fileInput} type="file" accept={ACCEPT} onChange={handleFile} className="sr-only" tabIndex={-1} aria-hidden="true" />
                         <Button variant="secondary" loading={uploading} onClick={() => fileInput.current?.click()}>
                             <Icon name="upload" className="size-4" />
                             {uploading ? "Uploading…" : "Upload document"}
                         </Button>
-                    </>
+                    </div>
                 )}
             </div>
 
@@ -164,6 +193,7 @@ export default function DocumentsPanel({ workspace, initialDocuments }: { worksp
                                 <div className="flex flex-wrap items-center gap-2">
                                     <span className="truncate font-medium text-ink" title={document.filename}>{document.filename}</span>
                                     <Badge tone={STATUS[document.status].tone}>{STATUS[document.status].label}</Badge>
+                                    {document.audience === "owners" && <Badge tone="muted">Owners only</Badge>}
                                 </div>
                                 <p className="mt-0.5 text-xs text-muted">
                                     {document.uploader?.name ?? "Former member"} · {new Date(document.created_at).toLocaleDateString()}
@@ -175,6 +205,19 @@ export default function DocumentsPanel({ workspace, initialDocuments }: { worksp
                                     </p>
                                 )}
                             </div>
+
+                            {canManage && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    aria-label={document.audience === "owners" ? `Show ${document.filename} to everyone` : `Restrict ${document.filename} to owners`}
+                                    title={document.audience === "owners" ? "Show to everyone" : "Restrict to owners"}
+                                    loading={updatingId === document.id}
+                                    onClick={() => handleAudience(document)}
+                                >
+                                    <Icon name="lock" className="size-3.5" />
+                                </Button>
+                            )}
 
                             {canManage && (
                                 <Button
