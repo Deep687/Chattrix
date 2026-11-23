@@ -6,6 +6,7 @@ use App\Enums\DocumentStatus;
 use App\Models\Conversation;
 use App\Models\ConversationMessage;
 use App\Models\DocumentChunk;
+use App\Models\User;
 use App\Models\Workspace;
 use App\Services\Ai\AiProviderException;
 use App\Services\Ai\ChatProvider;
@@ -66,7 +67,7 @@ class RagService
 
         try {
             $searchQuery = $this->standaloneQuestion($history, $question);
-            $chunks = $this->retrieve($workspace, $this->embedder->embedQuery($searchQuery));
+            $chunks = $this->retrieve($workspace, $conversation->user, $this->embedder->embedQuery($searchQuery));
         } catch (Throwable $e) {
             yield $this->failure($e, $workspace);
 
@@ -152,21 +153,23 @@ class RagService
     }
 
     /**
-     * Nearest chunks to the question, from this workspace only.
+     * Nearest chunks to the question, from this workspace and the asker's audiences only.
      *
-     * The `workspace_id` filter is the data-layer half of tenant isolation: it runs even when the
-     * policy has already passed. `iterative_scan` makes the HNSW index keep searching past chunks
+     * The `workspace_id` and `audience` filters are the data-layer half of isolation: they run even
+     * when the policy has already passed. `iterative_scan` makes the HNSW index keep searching past chunks
      * the filter rejected; without it a small tenant on a busy index can get fewer than K results.
      *
      * @param  Workspace  $workspace
+     * @param  User  $asker
      * @param  list<float>  $embedding
      * @return Collection<int, DocumentChunk>
      */
-    public function retrieve(Workspace $workspace, array $embedding): Collection
+    public function retrieve(Workspace $workspace, User $asker, array $embedding): Collection
     {
         $vector = '['.implode(',', $embedding).']';
+        $audiences = $workspace->roleOf($asker)->visibleAudiences();
 
-        return DB::transaction(function () use ($workspace, $vector) {
+        return DB::transaction(function () use ($workspace, $audiences, $vector) {
             DB::statement("SET LOCAL hnsw.iterative_scan = 'relaxed_order'");
 
             return DocumentChunk::query()
@@ -174,6 +177,7 @@ class RagService
                 ->select(['id', 'document_id', 'workspace_id', 'chunk_index', 'content', 'page'])
                 ->selectRaw('embedding <=> ?::vector AS distance', [$vector])
                 ->where('workspace_id', $workspace->id)
+                ->whereIn('audience', $audiences)
                 ->orderByRaw('embedding <=> ?::vector', [$vector])
                 ->limit(config('rag.top_k'))
                 ->get()
@@ -290,7 +294,11 @@ class RagService
             'message_id' => $message->id,
             'answered' => $answered,
             'cited' => $cited,
-            'searched_documents' => $conversation->workspace->documents()->where('status', DocumentStatus::Ready)->count(),
+            // Scoped like retrieval, or a member's count would reveal that owner-only documents exist.
+            'searched_documents' => $conversation->workspace->documents()
+                ->visibleTo($conversation->user, $conversation->workspace)
+                ->where('status', DocumentStatus::Ready)
+                ->count(),
             'usage' => $usage,
         ]);
     }

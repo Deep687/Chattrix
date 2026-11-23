@@ -109,6 +109,9 @@ Route::middleware(['auth:sanctum', 'verified'])->scopeBindings()->group(function
     Route::get('/workspaces/{workspace}/documents/{document}', [DocumentController::class, 'show'])
         ->name('workspaces.documents.show');
 
+    Route::patch('/workspaces/{workspace}/documents/{document}', [DocumentController::class, 'update'])
+        ->name('workspaces.documents.update');
+
     Route::delete('/workspaces/{workspace}/documents/{document}', [DocumentController::class, 'destroy'])
         ->name('workspaces.documents.destroy');
 

@@ -78,6 +78,14 @@ class WorkspacePolicy
         return $workspace->owner_id === $user->id;
     }
 
+    /**
+     * Change a document's audience. Owner-only, like upload: deciding who sees a policy is curation.
+     */
+    public function updateDocument(User $user, Workspace $workspace): bool
+    {
+        return $workspace->owner_id === $user->id;
+    }
+
     public function deleteDocument(User $user, Workspace $workspace): bool
     {
         return $workspace->owner_id === $user->id;
@@ -87,7 +95,7 @@ class WorkspacePolicy
      * Ask a grounded question against this workspace's documents.
      *
      * Passing this check is necessary but not sufficient: the retrieval query still filters
-     * chunks by `workspace_id`, so a bug here cannot on its own leak another tenant's content.
+     * chunks by `workspace_id` and audience, so a bug here cannot on its own leak content.
      */
     public function ask(User $user, Workspace $workspace): bool
     {

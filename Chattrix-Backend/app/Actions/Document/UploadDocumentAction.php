@@ -2,6 +2,7 @@
 
 namespace App\Actions\Document;
 
+use App\Enums\DocumentAudience;
 use App\Jobs\EmbedDocumentJob;
 use App\Models\Document;
 use App\Models\User;
@@ -21,9 +22,10 @@ class UploadDocumentAction
      * @param  Workspace  $workspace
      * @param  User  $uploader
      * @param  UploadedFile  $file
+     * @param  DocumentAudience  $audience
      * @return Document
      */
-    public function handle(Workspace $workspace, User $uploader, UploadedFile $file): Document
+    public function handle(Workspace $workspace, User $uploader, UploadedFile $file, DocumentAudience $audience = DocumentAudience::Everyone): Document
     {
         $path = $file->store("documents/{$workspace->id}", 'local');
 
@@ -33,6 +35,7 @@ class UploadDocumentAction
                 'filename' => mb_substr(basename($file->getClientOriginalName()), 0, 255),
                 'path' => $path,
                 'mime_type' => $this->mimeType($file),
+                'audience' => $audience,
             ]);
         } catch (Throwable $e) {
             Storage::disk('local')->delete($path);

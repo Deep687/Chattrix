@@ -60,11 +60,15 @@ export type WorkspaceInvitationPreview = {
 
 export type DocumentStatus = "pending" | "processing" | "ready" | "failed";
 
+/** Who may retrieve a document. Members never receive `owners` documents at all. */
+export type DocumentAudience = "everyone" | "owners";
+
 /** Mirrors `App\Http\Resources\DocumentResource`. No storage path, by design. */
 export type WorkspaceDocument = {
     id: number;
     filename: string;
     mime_type: string;
+    audience: DocumentAudience;
     status: DocumentStatus;
     /** Readable reason, set only when `status` is `failed`. */
     error: string | null;

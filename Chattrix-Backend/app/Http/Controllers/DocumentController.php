@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Document\ChangeDocumentAudienceAction;
 use App\Actions\Document\DeleteDocumentAction;
 use App\Actions\Document\UploadDocumentAction;
+use App\Enums\DocumentAudience;
+use App\Http\Requests\UpdateDocumentRequest;
 use App\Http\Requests\UploadDocumentRequest;
 use App\Http\Resources\DocumentResource;
 use App\Models\Document;
@@ -23,10 +26,12 @@ class DocumentController extends Controller
 
     /**
      * @param  UploadDocumentAction  $uploadDocumentAction
+     * @param  ChangeDocumentAudienceAction  $changeDocumentAudienceAction
      * @param  DeleteDocumentAction  $deleteDocumentAction
      */
     public function __construct(
         private UploadDocumentAction $uploadDocumentAction,
+        private ChangeDocumentAudienceAction $changeDocumentAudienceAction,
         private DeleteDocumentAction $deleteDocumentAction,
     ) {}
 
@@ -60,7 +65,12 @@ class DocumentController extends Controller
     {
         $this->authorize('uploadDocument', $workspace);
 
-        $document = $this->uploadDocumentAction->handle($workspace, Auth::user(), $request->file('file'));
+        $document = $this->uploadDocumentAction->handle(
+            $workspace,
+            Auth::user(),
+            $request->file('file'),
+            $request->enum('audience', DocumentAudience::class) ?? DocumentAudience::Everyone,
+        );
 
         return $this->success(new DocumentResource($document->load('uploader:id,name')), 201, 'Document uploaded successfully');
     }
@@ -79,6 +89,23 @@ class DocumentController extends Controller
         abort_unless($workspace->documents()->visibleTo(Auth::user(), $workspace)->whereKey($document->id)->exists(), 404);
 
         return $this->success(new DocumentResource($document->load('uploader:id,name')), 200, 'Document fetched successfully');
+    }
+
+    /**
+     * Change who may retrieve a document; takes effect on the next question.
+     *
+     * @param  UpdateDocumentRequest  $request
+     * @param  Workspace  $workspace
+     * @param  Document  $document
+     * @return JsonResponse
+     */
+    public function update(UpdateDocumentRequest $request, Workspace $workspace, Document $document): JsonResponse
+    {
+        $this->authorize('updateDocument', $workspace);
+
+        $document = $this->changeDocumentAudienceAction->handle($document, $request->enum('audience', DocumentAudience::class));
+
+        return $this->success(new DocumentResource($document->load('uploader:id,name')), 200, 'Document updated successfully');
     }
 
     /**

@@ -110,4 +110,16 @@ class Workspace extends Model
             ->wherePivot('role', $role->value)
             ->exists();
     }
+
+    /**
+     * The user's role here, decided by `owner_id` like the policy. Non-members read as Member,
+     * so authorise membership first.
+     *
+     * @param  User  $user
+     * @return WorkspaceRole
+     */
+    public function roleOf(User $user): WorkspaceRole
+    {
+        return $this->owner_id === $user->id ? WorkspaceRole::Owner : WorkspaceRole::Member;
+    }
 }

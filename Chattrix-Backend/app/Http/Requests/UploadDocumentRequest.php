@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\DocumentAudience;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UploadDocumentRequest extends FormRequest
 {
@@ -24,6 +26,7 @@ class UploadDocumentRequest extends FormRequest
     {
         return [
             'file' => ['required', 'file', 'extensions:pdf,txt,md', 'mimes:pdf,txt,md', 'max:10240'],
+            'audience' => ['sometimes', Rule::enum(DocumentAudience::class)],
         ];
     }
 

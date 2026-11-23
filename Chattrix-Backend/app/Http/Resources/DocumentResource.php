@@ -23,6 +23,7 @@ class DocumentResource extends JsonResource
             'id' => $this->id,
             'filename' => $this->filename,
             'mime_type' => $this->mime_type,
+            'audience' => $this->audience,
             'status' => $this->status,
             'error' => $this->error,
             'chunk_count' => $this->chunk_count,
